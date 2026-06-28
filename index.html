@@ -23,7 +23,6 @@ h1{text-align:center;font-size:22px;font-weight:500;color:#1a1a18;margin-bottom:
 .btn.primary{background:#1a1a18;color:#fff;border-color:#1a1a18}
 .btn.primary:hover{background:#3a3a38}
 .lobby-info{background:#e6f1fb;border-radius:8px;padding:10px 14px;font-size:13px;color:#185fa5;line-height:1.6;display:none}
-.lobby-info strong{font-weight:500}
 .lobby-err{background:#fceaea;border-radius:8px;padding:8px 14px;font-size:13px;color:#993c1d;display:none}
 #color-pick{display:none;flex-direction:column;align-items:center;gap:14px;width:100%}
 .pick-title{font-size:14px;color:#1a1a18;font-weight:500;text-align:center}
@@ -37,7 +36,6 @@ h1{text-align:center;font-size:22px;font-weight:500;color:#1a1a18;margin-bottom:
 .player-preview{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:10px;border:.5px solid #d3d1c7;background:#fff;font-size:13px;color:#1a1a18;min-width:200px;justify-content:center}
 .preview-dot{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(0,0,0,.12);transition:background .2s;flex-shrink:0}
 .ready-msg{font-size:13px;color:#2e6e29;background:#e6f6ee;padding:6px 16px;border-radius:20px;display:none}
-.waiting-other{font-size:13px;color:#888780;text-align:center;display:none}
 #game{display:none}
 .topbar{display:flex;justify-content:center;align-items:center;gap:14px;padding:10px 0 2px}
 .pill{padding:5px 16px;border-radius:20px;font-size:13px;font-weight:500}
@@ -68,7 +66,8 @@ svg#board{display:block;width:100%}
 .score-box.winner .crown{display:block}
 .score-dash{font-size:22px;color:#888780}
 .btn-next{margin-top:14px;padding:8px 28px;border-radius:8px;border:.5px solid #888780;background:#1a1a18;font-size:13px;cursor:pointer;color:#fff;font-family:inherit}
-.btn-next:hover{background:#3a3a38}
+.btn-next:hover:not(:disabled){background:#3a3a38}
+.btn-next:disabled{opacity:.5;cursor:not-allowed}
 #confetti-canvas{position:absolute;inset:0;pointer-events:none;z-index:11;display:none}
 </style>
 </head>
@@ -95,7 +94,6 @@ svg#board{display:block;width:100%}
         <span id="preview-name">Aucune couleur choisie</span>
       </div>
       <div class="ready-msg" id="ready-msg">✓ Prêt ! En attente de l'adversaire…</div>
-      <div class="waiting-other" id="waiting-other"></div>
     </div>
   </div>
   <div id="game">
@@ -125,17 +123,23 @@ svg#board{display:block;width:100%}
             <div class="score-dash">—</div>
             <div class="score-box" id="bx1"><div class="crown">👑</div><div class="score-val" id="bv1">0</div></div>
           </div>
-          <button class="btn-next" id="btn-next" onclick="nextRound()">Round suivant</button>
+          <button class="btn-next" id="btn-next" onclick="handleNextRound()">Round suivant</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 <script>
+// ════════════════════════════════════════════════
+//  SUPABASE
+// ════════════════════════════════════════════════
 const SB_URL='https://cyynfiitvpuhhtcelfcz.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eW5maWl0dnB1aGh0Y2VsZmN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDY4OTMsImV4cCI6MjA5ODIyMjg5M30.V6qwQoQt38vgDEiU4IE6ScZAbpIsp9Syna2QcBHwHIY';
 const sb=supabase.createClient(SB_URL,SB_ANON);
 
+// ════════════════════════════════════════════════
+//  PALETTE
+// ════════════════════════════════════════════════
 const PAL=[
   {h:'#FF8A89',n:'Rose corail',d:'#b54b4a'},
   {h:'#FFCE86',n:'Jaune soleil',d:'#8a6010'},
@@ -145,23 +149,43 @@ const PAL=[
   {h:'#C99EE3',n:'Violet lavande',d:'#5c2e9a'},
 ];
 
-let roomId=null,myRole=null,myColor=null,otherColor=null;
-let C=[null,null],channel=null,gameStarted=false;
+// ════════════════════════════════════════════════
+//  ÉTAT GLOBAL
+// ════════════════════════════════════════════════
+const $=id=>document.getElementById(id);
 const ROWS=6,R=36,HG=80,VG=70,SX=260,SY=58;
-let cells=[],turn=0,curNum=1,gameOver=false;
-let roundIdx=0,wins=[0,0],animating=false,ssc=[0,0];
 
-// ── UI helpers ──
-function showErr(m){const e=document.getElementById('lobby-err');e.textContent=m;e.style.display='block';}
-function hideErr(){document.getElementById('lobby-err').style.display='none';}
-function showInfo(h){const e=document.getElementById('lobby-info');e.innerHTML=h;e.style.display='block';}
+let roomId=null, myRole=null, myColor=null, otherColor=null;
+let C=[null,null], channel=null, gameStarted=false;
+
+// État jeu — toujours synchronisé depuis Supabase
+let cells=[], turn=0, curNum=1, gameOver=false;
+let roundIdx=0, wins=[0,0];
+
+// Flags locaux (non-persistés)
+let animating=false, isPlacing=false, ssc=[0,0];
+let lastProcessedOver=false; // évite de relancer l'animation sur chaque update
+
+// ════════════════════════════════════════════════
+//  LOBBY HELPERS
+// ════════════════════════════════════════════════
+function showErr(m){$('lobby-err').textContent=m;$('lobby-err').style.display='block';}
+function hideErr(){$('lobby-err').style.display='none';}
+function showInfo(h){$('lobby-info').innerHTML=h;$('lobby-info').style.display='block';}
 function getCode(){
-  const v=document.getElementById('code-input').value.trim().toUpperCase();
+  const v=$('code-input').value.trim().toUpperCase();
   if(!v){showErr('Entre un code de partie.');return null;}
   hideErr();return v;
 }
+function makeCells(){
+  const ic=[];
+  for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)ic.push({r,c,value:null,player:null});
+  return ic;
+}
 
-// ── Créer ──
+// ════════════════════════════════════════════════
+//  CRÉER / REJOINDRE
+// ════════════════════════════════════════════════
 async function createRoom(){
   const code=getCode();if(!code)return;
   const{data:ex}=await sb.from('games').select('id').eq('id',code).single();
@@ -177,40 +201,35 @@ async function createRoom(){
   subscribe();
 }
 
-// ── Rejoindre ──
 async function joinRoom(){
   const code=getCode();if(!code)return;
   const{data,error}=await sb.from('games').select('*').eq('id',code).single();
   if(error||!data){showErr('Partie introuvable. Vérifie le code.');return;}
-  if(data.p1_color!==null&&data.phase!=='lobby'){showErr('La partie est déjà complète.');return;}
   roomId=code;myRole=1;
   if(data.p0_color!==null)otherColor=data.p0_color;
   showInfo(`<strong>Code : ${code}</strong><br>Tu rejoins en tant que Joueur 2 !`);
   showColorPicker();
   subscribe();
-  // ── CORRECTION CLÉ : si J0 a déjà choisi ET que la partie est déjà en playing,
-  //    on entre directement dans le jeu sans attendre un nouvel événement
-  if(data.phase==='playing'){
+  // Partie déjà en cours (reconnexion)
+  if(data.phase==='playing'&&data.cells){
     C=[PAL[data.p0_color],PAL[data.p1_color]];
     enterGame();
-    applyGameState(data);
+    applyState(data);
   }
 }
 
-// ── Sélecteur couleur ──
+// ════════════════════════════════════════════════
+//  SÉLECTEUR COULEUR
+// ════════════════════════════════════════════════
 function showColorPicker(){
-  document.getElementById('color-pick').style.display='flex';
-  document.getElementById('pick-title').textContent=
-    myRole===0?'Joueur 1 — choisis ta couleur':'Joueur 2 — choisis ta couleur';
-  if(myRole===0){
-    document.getElementById('waiting-other').style.display='block';
-    document.getElementById('waiting-other').textContent='En attente du Joueur 2…';
-  }
+  $('color-pick').style.display='flex';
+  $('pick-title').textContent=myRole===0
+    ?'Joueur 1 — choisis ta couleur'
+    :'Joueur 2 — choisis ta couleur';
   buildSwatches();
 }
-
 function buildSwatches(){
-  const c=document.getElementById('swatches');c.innerHTML='';
+  const c=$('swatches');c.innerHTML='';
   PAL.forEach((col,ci)=>{
     const d=document.createElement('div');
     d.className='swatch';d.style.background=col.h;
@@ -220,154 +239,179 @@ function buildSwatches(){
   });
   refreshSwatches();
 }
-
 function refreshSwatches(){
   PAL.forEach((_,ci)=>{
-    const el=document.getElementById('sw'+ci);if(!el)return;
+    const el=$('sw'+ci);if(!el)return;
     el.className='swatch';
     if(ci===myColor)el.classList.add('selected');
     if(ci===otherColor)el.classList.add('disabled');
   });
 }
-
 async function pickColor(ci){
   if(ci===otherColor)return;
   myColor=ci;
-  document.getElementById('preview-dot').style.background=PAL[ci].h;
-  document.getElementById('preview-name').textContent=PAL[ci].n;
+  $('preview-dot').style.background=PAL[ci].h;
+  $('preview-name').textContent=PAL[ci].n;
   refreshSwatches();
   const field=myRole===0?'p0_color':'p1_color';
   await sb.from('games').update({[field]:ci}).eq('id',roomId);
-  document.getElementById('ready-msg').style.display='block';
-
-  // ── CORRECTION CLÉ : après avoir choisi, J2 vérifie immédiatement
-  //    si J0 avait déjà choisi → lance le jeu sans attendre Realtime
+  $('ready-msg').style.display='block';
+  // FIX: J1 vérifie immédiatement si J0 a déjà choisi → lance le jeu sans attendre Realtime
   if(myRole===1){
     const{data}=await sb.from('games').select('*').eq('id',roomId).single();
-    if(data&&data.p0_color!==null){
-      // J0 avait déjà choisi → J1 lance le jeu directement
+    if(data&&data.p0_color!==null&&!gameStarted){
       C=[PAL[data.p0_color],PAL[ci]];
-      // Met à jour la DB pour que J0 bascule aussi
-      const ic=[];
-      for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)ic.push({r,c,value:null,player:null});
+      const ic=makeCells();
       await sb.from('games').update({
         phase:'playing',cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
       }).eq('id',roomId);
       enterGame();
-      applyGameState({...data,phase:'playing',cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]});
+      applyState({cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]});
     }
   }
 }
 
-// ── Realtime ──
+// ════════════════════════════════════════════════
+//  REALTIME
+// ════════════════════════════════════════════════
 function subscribe(){
+  if(channel)return;
   channel=sb.channel('room-'+roomId)
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'games',filter:`id=eq.${roomId}`},
-      p=>onRow(p.new))
+    .on('postgres_changes',{
+      event:'UPDATE',schema:'public',table:'games',filter:`id=eq.${roomId}`
+    },p=>onRow(p.new))
     .subscribe();
 }
 
 function onRow(row){
-  // Mise à jour couleur de l'autre joueur
-  const oc=myRole===0?row.p1_color:row.p0_color;
-  if(oc!==null&&oc!==otherColor){
-    otherColor=oc;
-    if(myColor===oc){
-      myColor=null;
-      document.getElementById('preview-dot').style.background='transparent';
-      document.getElementById('preview-name').textContent='Aucune couleur choisie';
-      document.getElementById('ready-msg').style.display='none';
+  // Mise à jour couleur de l'autre joueur dans le lobby
+  if(!gameStarted){
+    const oc=myRole===0?row.p1_color:row.p0_color;
+    if(oc!==null&&oc!==otherColor){
+      otherColor=oc;
+      if(myColor===oc){
+        myColor=null;
+        $('preview-dot').style.background='transparent';
+        $('preview-name').textContent='Aucune couleur choisie';
+        $('ready-msg').style.display='none';
+      }
+      refreshSwatches();
     }
-    refreshSwatches();
-  }
-
-  // Passage en phase playing → J0 entre dans le jeu
-  if(row.phase==='playing'&&!gameStarted){
-    if(!C[0]&&row.p0_color!==null&&row.p1_color!==null){
+    // J0 détecte que J1 a choisi → lance la partie
+    if(row.phase==='lobby'&&row.p0_color!==null&&row.p1_color!==null&&myRole===0){
       C=[PAL[row.p0_color],PAL[row.p1_color]];
+      const ic=makeCells();
+      sb.from('games').update({
+        phase:'playing',cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
+      }).eq('id',roomId).then(()=>{});
+      return;
     }
-    if(C[0]){
-      enterGame();
-      applyGameState(row);
+    // Entrée dans le jeu via Realtime (phase playing reçue)
+    if(row.phase==='playing'&&row.cells&&!gameStarted){
+      if(row.p0_color!==null&&row.p1_color!==null){
+        C=[PAL[row.p0_color],PAL[row.p1_color]];
+        enterGame();
+        applyState(row);
+      }
     }
     return;
   }
 
-  if(row.phase==='playing'&&gameStarted){
-    applyGameState(row);
-  }
-
-  // J0 voit que les deux ont choisi → il lance le jeu
-  if(row.phase==='lobby'&&row.p0_color!==null&&row.p1_color!==null&&myRole===0&&!gameStarted){
-    C=[PAL[row.p0_color],PAL[row.p1_color]];
-    const ic=[];
-    for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)ic.push({r,c,value:null,player:null});
-    sb.from('games').update({
-      phase:'playing',cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
-    }).eq('id',roomId).then(()=>{});
+  // Jeu en cours → applique l'état
+  if(row.phase==='playing'&&row.cells){
+    applyState(row);
   }
 }
 
-// ── Entrée dans le jeu ──
+// ════════════════════════════════════════════════
+//  ENTRÉE DANS LE JEU
+// ════════════════════════════════════════════════
 function enterGame(){
   if(gameStarted)return;
   gameStarted=true;
-  document.getElementById('lobby').style.display='none';
-  document.getElementById('game').style.display='block';
+  $('lobby').style.display='none';
+  $('game').style.display='block';
   applyColors();
 }
-
 function applyColors(){
   [0,1].forEach(pi=>{
-    const c=C[pi];
-    const p=document.getElementById('sp'+pi);p.style.background=c.h;p.style.color=c.d;
-    const b=document.getElementById('bx'+pi);b.style.borderColor=c.h;b.style.color=c.d;
+    $('sp'+pi).style.background=C[pi].h;$('sp'+pi).style.color=C[pi].d;
+    $('bx'+pi).style.borderColor=C[pi].h;$('bx'+pi).style.color=C[pi].d;
   });
-  document.getElementById('sbl').style.borderColor=C[0].h;document.getElementById('sbl').style.color=C[0].d;
-  document.getElementById('sbr').style.borderColor=C[1].h;document.getElementById('sbr').style.color=C[1].d;
+  $('sbl').style.borderColor=C[0].h;$('sbl').style.color=C[0].d;
+  $('sbr').style.borderColor=C[1].h;$('sbr').style.color=C[1].d;
 }
 
-// ── État jeu ──
-function applyGameState(row){
+// ════════════════════════════════════════════════
+//  APPLIQUER L'ÉTAT (appelé à chaque update Supabase)
+// ════════════════════════════════════════════════
+function applyState(row){
+  const prevOver=gameOver;
+  const prevRound=roundIdx;
+
   cells=row.cells||[];
-  turn=row.turn;curNum=row.cur_num;gameOver=row.over;
+  turn=row.turn;
+  curNum=row.cur_num;
+  gameOver=row.over;
   roundIdx=row.round_idx;
   wins=Array.isArray(row.wins)?row.wins:JSON.parse(row.wins);
-  if(row.over){
-    const bh=cells.find(x=>x.value===null);
-    if(!bh)return;
-    const adjS=new Set(adjOf(bh.r,bh.c).map(a=>a.r*10+a.c));
-    const sc=[0,0];
-    for(const c of cells)if(adjS.has(c.r*10+c.c)&&c.player!==null)sc[c.player]+=c.value;
-    render(bh,null);
-    if(!animating)runAnim(bh,adjS,sc);
-  } else{render();updateUI();}
+
+  if(!gameOver){
+    // Nouveau round (round_idx a changé) ou reset → nettoie tout
+    if(prevOver||prevRound!==roundIdx){
+      cleanupRound();
+    }
+    render();
+    updateUI();
+  } else {
+    // Fin de round → lance l'animation UNE SEULE FOIS
+    if(!animating&&!lastProcessedOver){
+      lastProcessedOver=true;
+      const bh=cells.find(x=>x.value===null);
+      if(!bh)return;
+      const adjS=new Set(adjOf(bh.r,bh.c).map(a=>a.r*10+a.c));
+      const sc=[0,0];
+      for(const c of cells)if(adjS.has(c.r*10+c.c)&&c.player!==null)sc[c.player]+=c.value;
+      render(bh,null);
+      runAnim(bh,adjS,sc);
+    }
+  }
 }
 
-// ── Placement ──
+// ════════════════════════════════════════════════
+//  PLACEMENT
+// ════════════════════════════════════════════════
 async function place(r,c){
-  if(gameOver||animating||turn!==myRole)return;
-  const{data:row}=await sb.from('games').select('*').eq('id',roomId).single();
-  if(!row||row.turn!==myRole)return;
-  const cell=row.cells.find(x=>x.r===r&&x.c===c);
-  if(!cell||cell.value!==null)return;
-  cell.value=row.cur_num;cell.player=row.turn;
-  let nt=1-row.turn,nc=row.cur_num;
-  if(row.turn===1)nc++;
-  await sb.from('games').update({cells:row.cells,turn:nt,cur_num:nc,over:nc>10&&nt===0}).eq('id',roomId);
+  if(gameOver||animating||isPlacing||turn!==myRole)return;
+  isPlacing=true;
+  try{
+    const{data:row}=await sb.from('games').select('*').eq('id',roomId).single();
+    if(!row||row.turn!==myRole||row.over){isPlacing=false;return;}
+    const cell=row.cells.find(x=>x.r===r&&x.c===c);
+    if(!cell||cell.value!==null){isPlacing=false;return;}
+    cell.value=row.cur_num;cell.player=row.turn;
+    let nt=1-row.turn,nc=row.cur_num;
+    if(row.turn===1)nc++;
+    const isOver=nc>10&&nt===0;
+    await sb.from('games').update({cells:row.cells,turn:nt,cur_num:nc,over:isOver}).eq('id',roomId);
+  }finally{isPlacing=false;}
 }
 
-// ── Animation traits ──
+// ════════════════════════════════════════════════
+//  ANIMATION TRAITS
+// ════════════════════════════════════════════════
 function runAnim(bh,adjS,sc){
   animating=true;ssc=[0,0];
-  document.getElementById('score-left').classList.add('show');
-  document.getElementById('score-right').classList.add('show');
-  document.getElementById('sbl').textContent='0';
-  document.getElementById('sbr').textContent='0';
-  const svg=document.getElementById('board');
+  $('score-left').classList.add('show');$('score-right').classList.add('show');
+  $('sbl').textContent='0';$('sbr').textContent='0';
+  const svg=$('board');
   const bp=cpos(bh.r,bh.c),adjC=adjOf(bh.r,bh.c);let i=0;
   function next(){
-    if(i>=adjC.length){animating=false;setTimeout(()=>showResult(sc,bh,adjS),500);return;}
+    if(i>=adjC.length){
+      animating=false;
+      setTimeout(()=>showResult(sc,bh,adjS),500);
+      return;
+    }
     const nb=adjC[i++],np=cpos(nb.r,nb.c);
     const dx=np.x-bp.x,dy=np.y-bp.y,dist=Math.sqrt(dx*dx+dy*dy),ux=dx/dist,uy=dy/dist;
     const ln=mkS('line');
@@ -390,50 +434,106 @@ function runAnim(bh,adjS,sc){
   }
   setTimeout(next,400);
 }
-
 function bump(pi){
-  const el=document.getElementById(pi===0?'sbl':'sbr');
+  const el=$(pi===0?'sbl':'sbr');
   el.textContent=ssc[pi];el.classList.add('bump');
   setTimeout(()=>el.classList.remove('bump'),200);
 }
 
-// ── Résultat ──
+// ════════════════════════════════════════════════
+//  RÉSULTAT DE ROUND
+// ════════════════════════════════════════════════
 function showResult(sc,bh,adjS){
   render(bh,adjS);
-  document.getElementById('score-left').classList.remove('show');
-  document.getElementById('score-right').classList.remove('show');
+  $('score-left').classList.remove('show');$('score-right').classList.remove('show');
   const loser=sc[0]>sc[1]?0:sc[1]>sc[0]?1:-1;
-  if(loser===-1)document.getElementById('rmsg').textContent='Égalité ce round !';
-  else{const w=1-loser;document.getElementById('rmsg').textContent=`Victoire de ${C[w].n} !`;wins[w]++;}
-  document.getElementById('bv0').textContent=sc[0];
-  document.getElementById('bv1').textContent=sc[1];
-  ['bx0','bx1'].forEach(id=>document.getElementById(id).classList.remove('winner'));
-  if(loser===0)document.getElementById('bx1').classList.add('winner');
-  else if(loser===1)document.getElementById('bx0').classList.add('winner');
-  if(loser!==-1){const w=1-loser,dot=document.getElementById('rd'+roundIdx);dot.style.background=C[w].h;dot.style.borderColor=C[w].h;}
-  document.getElementById('btn-next').textContent=roundIdx===2?'Voir le résultat final':'Round suivant';
-  document.getElementById('ov').classList.add('show');
-  updatePills();confetti(loser===-1?null:1-loser);
+  const isFinal=roundIdx===2;
+
+  // FIX: met à jour wins localement AVANT d'afficher
+  if(loser!==-1)wins[1-loser]++;
+
+  if(loser===-1)$('rmsg').textContent='Égalité ce round !';
+  else $('rmsg').textContent=`Victoire de ${C[1-loser].n} !`;
+
+  $('bv0').textContent=sc[0];$('bv1').textContent=sc[1];
+  ['bx0','bx1'].forEach(id=>$(id).classList.remove('winner'));
+  if(loser===0)$('bx1').classList.add('winner');
+  else if(loser===1)$('bx0').classList.add('winner');
+
+  if(loser!==-1){
+    const dot=$('rd'+roundIdx);
+    dot.style.background=C[1-loser].h;dot.style.borderColor=C[1-loser].h;
+  }
+
+  // FIX: bouton adapté selon round final ou pas, pour les DEUX joueurs
+  if(isFinal){
+    $('btn-next').textContent='Voir le résultat final';
+    $('btn-next').disabled=false;
+  } else {
+    // J0 peut cliquer, J1 attend
+    if(myRole===0){
+      $('btn-next').textContent='Round suivant';
+      $('btn-next').disabled=false;
+    } else {
+      $('btn-next').textContent='En attente de J1…';
+      $('btn-next').disabled=true;
+    }
+  }
+
+  $('ov').classList.add('show');
+  updatePills();
+  confetti(loser===-1?null:1-loser);
 }
 
-async function nextRound(){
-  if(roundIdx>=2){showFinal();return;}
+// ════════════════════════════════════════════════
+//  ROUND SUIVANT / FINAL
+// ════════════════════════════════════════════════
+async function handleNextRound(){
+  const isFinal=roundIdx===2;
+
+  if(isFinal){
+    // Les DEUX joueurs peuvent afficher le final local
+    showFinal();
+    return;
+  }
+
+  // Seul J0 écrit dans Supabase
   if(myRole!==0)return;
+
+  $('btn-next').disabled=true;
   const nr=roundIdx+1;
-  const ic=[];
-  for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)ic.push({r,c,value:null,player:null});
-  await sb.from('games').update({cells:ic,turn:0,cur_num:1,over:false,round_idx:nr,wins}).eq('id',roomId);
-  document.getElementById('ov').classList.remove('show');
-  document.getElementById('confetti-canvas').style.display='none';
-  document.getElementById('board').querySelectorAll('line.al').forEach(l=>l.remove());
+  const ic=makeCells();
+  // FIX: on persiste aussi wins dans Supabase
+  await sb.from('games').update({
+    cells:ic,turn:0,cur_num:1,over:false,
+    round_idx:nr,wins:wins
+  }).eq('id',roomId);
+  // J0 nettoie son écran immédiatement (J1 le fera via Realtime)
+  cleanupRound();
+  render();updateUI();
+}
+
+function cleanupRound(){
+  $('ov').classList.remove('show');
+  $('confetti-canvas').style.display='none';
+  $('board').querySelectorAll('line.al').forEach(l=>l.remove());
+  $('score-left').classList.remove('show');$('score-right').classList.remove('show');
+  $('sbl').textContent='0';$('sbr').textContent='0';
+  $('btn-next').disabled=false;
+  $('btn-next').textContent='Round suivant';
+  animating=false;
+  lastProcessedOver=false; // FIX: reset pour permettre la prochaine animation
 }
 
 function showFinal(){
   const loser=wins[0]<wins[1]?0:wins[1]<wins[0]?1:-1;
-  document.getElementById('rmsg').textContent=loser===-1?'Égalité générale !':`Victoire de ${C[1-loser].n} sur 3 rounds !`;
-  const btn=document.getElementById('btn-next');
-  btn.textContent='Rejouer';btn.onclick=resetGame;
-  document.getElementById('ov').classList.add('show');
+  $('rmsg').textContent=loser===-1
+    ?'Égalité générale !'
+    :`Victoire de ${C[1-loser].n} sur 3 rounds !`;
+  $('btn-next').textContent='Rejouer';
+  $('btn-next').disabled=false;
+  $('btn-next').onclick=resetGame;
+  $('ov').classList.add('show');
   confetti(loser===-1?null:1-loser);
 }
 
@@ -442,7 +542,9 @@ async function resetGame(){
   location.reload();
 }
 
-// ── SVG ──
+// ════════════════════════════════════════════════
+//  RENDU SVG
+// ════════════════════════════════════════════════
 const mkS=t=>document.createElementNS('http://www.w3.org/2000/svg',t);
 const cpos=(r,c)=>({x:SX+(c-r/2)*HG,y:SY+r*VG});
 function adjOf(r,c){
@@ -458,7 +560,7 @@ function mkT(v,fill,size){
   t.setAttribute('fill',fill);t.textContent=v;return t;
 }
 function render(bh=null,adjS=null){
-  const svg=document.getElementById('board');
+  const svg=$('board');
   svg.querySelectorAll('g.cell').forEach(e=>e.remove());
   if(!cells||!cells.length)return;
   for(const cell of cells){
@@ -471,7 +573,8 @@ function render(bh=null,adjS=null){
     if(isBH){ci.setAttribute('fill','#2C2C2A');ci.setAttribute('stroke','#2C2C2A');}
     else if(cell.player!==null){
       const col=C[cell.player];
-      ci.setAttribute('fill',col.h);ci.setAttribute('stroke',isAdj?'#2C2C2A':col.d);
+      ci.setAttribute('fill',col.h);
+      ci.setAttribute('stroke',isAdj?'#2C2C2A':col.d);
       ci.setAttribute('stroke-width',isAdj?'3.5':'3');
     }else{ci.setAttribute('fill','transparent');ci.setAttribute('stroke','#b4b2a9');}
     g.appendChild(ci);
@@ -488,24 +591,34 @@ function render(bh=null,adjS=null){
   }
 }
 
-// ── UI ──
+// ════════════════════════════════════════════════
+//  UI
+// ════════════════════════════════════════════════
 function updateUI(){
   const c=C[turn];
-  document.getElementById('tlbl').textContent=`Tour de ${c.n}`;
-  document.getElementById('nlbl').innerHTML=`${c.n} place son <strong>${curNum}</strong>`;
-  const b=document.getElementById('turn-banner');
-  if(turn===myRole){b.textContent='✦ À ton tour !';b.style.background=C[myRole].h;b.style.color=C[myRole].d;}
-  else{b.textContent="En attente de l'adversaire…";b.style.background='#eeede8';b.style.color='#888780';}
+  $('tlbl').textContent=`Tour de ${c.n}`;
+  $('nlbl').innerHTML=`${c.n} place son <strong>${curNum}</strong>`;
+  const b=$('turn-banner');
+  if(turn===myRole){
+    b.textContent='✦ À ton tour !';
+    b.style.background=C[myRole].h;b.style.color=C[myRole].d;
+  }else{
+    b.textContent="En attente de l'adversaire…";
+    b.style.background='#eeede8';b.style.color='#888780';
+  }
   updatePills();
 }
 function updatePills(){
-  [0,1].forEach(pi=>{if(C[pi])document.getElementById('sp'+pi).textContent=`${C[pi].n} — ${wins[pi]} victoire${wins[pi]>1?'s':''}`;});
+  [0,1].forEach(pi=>{
+    if(C[pi])$('sp'+pi).textContent=`${C[pi].n} — ${wins[pi]} victoire${wins[pi]>1?'s':''}`;
+  });
 }
 
-// ── Confettis ──
+// ════════════════════════════════════════════════
+//  CONFETTIS
+// ════════════════════════════════════════════════
 function confetti(wi){
-  const cv=document.getElementById('confetti-canvas');
-  const wrap=document.querySelector('.board-wrap');
+  const cv=$('confetti-canvas'),wrap=document.querySelector('.board-wrap');
   cv.width=wrap.offsetWidth;cv.height=wrap.offsetHeight;cv.style.display='block';
   const ctx=cv.getContext('2d');
   const cols=wi!==null?[C[wi].h,'#ffffff',C[wi].d]:[C[0].h,C[1].h,'#ffffff'];
