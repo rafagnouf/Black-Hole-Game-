@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Black Hole — Multijoueur</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f4ee;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    .container { max-width: 560px; width: 100%; }
+    h1 { text-align: center; font-size: 22px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
+    .subtitle { text-align: center; font-size: 13px; color: #888780; margin-bottom: 16px; }
+
+    /* ── Lobby ── */
+    #lobby {
+      background: #fff;
+      border: 0.5px solid #d3d1c7;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #lobby label { font-size: 13px; color: #5f5e5a; }
+    #lobby input {
+      width: 100%; padding: 8px 12px;
+      border: 0.5px solid #b4b2a9; border-radius: 8px;
+      font-size: 14px; background: #fff; color: #1a1a18; margin-top: 4px;
+    }
+    #lobby input:focus { outline: none; border-color: #185fa5; }
+    .btn {
+      padding: 9px 20px; border-radius: 8px;
+      border: 0.5px solid #888780; background: transparent;
+      font-size: 14px; cursor: pointer; color: #1a1a18;
+    }
+    .btn:hover { background: #eeede8; }
+    .btn-primary { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+    .btn-primary:hover { background: #3a3a38; }
+    .room-info {
+      background: #e6f1fb; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; color: #185fa5; line-height: 1.6;
+    }
+
+    /* ── Game ── */
+    #game { display: none; }
+    .score-bar {
+      display: flex; gap: 12px; justify-content: center;
+      align-items: center; margin-bottom: 6px;
+    }
+    .pill { padding: 5px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; }
+    .p1pill { background: #e6f1fb; color: #185fa5; }
+    .p2pill { background: #faece7; color: #993c1d; }
+    .turn-lbl { font-size: 13px; color: #5f5e5a; }
+    .num-lbl { font-size: 12px; color: #888780; text-align: center; margin-bottom: 6px; }
+    .num-lbl strong { color: #1a1a18; }
+    .badge-wrap { text-align: center; margin-bottom: 8px; }
+    .my-badge {
+      display: inline-block; padding: 4px 14px;
+      border-radius: 20px; font-size: 12px; font-weight: 500;
+    }
+    .my-badge.p1 { background: #e6f1fb; color: #185fa5; }
+    .my-badge.p2 { background: #faece7; color: #993c1d; }
+
+    .board-wrap { position: relative; }
+    svg { display: block; width: 100%; }
+
+    .overlay {
+      position: absolute; inset: 0; display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(245,244,238,.93); border-radius: 12px; gap: 12px;
+    }
+    .ov-title { font-size: 20px; font-weight: 500; color: #1a1a18; }
+    .ov-sub { font-size: 13px; color: #5f5e5a; text-align: center; max-width: 320px; line-height: 1.5; }
+
+    .legend {
+      display: flex; gap: 14px; justify-content: center;
+      margin-top: 10px; font-size: 11px; color: #5f5e5a;
+    }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .ld { width: 13px; height: 13px; border-radius: 50%; border: 2px solid; }
+    .ld.p1 { background: #b5d4f4; border-color: #185fa5; }
+    .ld.p2 { background: #f5c4b3; border-color: #993c1d; }
+    .ld.bh { background: #2c2c2a; border-color: #2c2c2a; }
+    .ld.aj { background: transparent; border-color: #ef9f27; border-width: 3px; }
+    .status-msg { font-size: 12px; color: #888780; text-align: center; margin-top: 4px; min-height: 18px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Black Hole</h1>
+  <p class="subtitle">Jeu de stratégie multijoueur</p>
+
+  <!-- ══ LOBBY ══ -->
+  <div id="lobby">
+    <div>
+      <label>Code de la partie</label>
+      <input id="room-input" type="text" placeholder="ex: ROUGE42" maxlength="12" />
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="createRoom()">Créer une partie</button>
+      <button class="btn" onclick="joinRoom()">Rejoindre</button>
+    </div>
+    <div id="lobby-info" style="display:none"></div>
+  </div>
+
+  <!-- ══ JEU ══ -->
+  <div id="game">
+    <div class="badge-wrap">
+      <span class="my-badge" id="my-badge"></span>
+    </div>
+    <div class="score-bar">
+      <div class="pill p1pill" id="s1">Joueur 1 — 0</div>
+      <div class="turn-lbl"   id="tlbl">—</div>
+      <div class="pill p2pill" id="s2">Joueur 2 — 0</div>
+    </div>
+    <p class="num-lbl" id="nlbl">&nbsp;</p>
+    <div class="board-wrap">
+      <svg id="board" viewBox="0 0 520 460"></svg>
+      <div class="overlay" id="ov">
+        <div class="ov-title" id="ov-t"></div>
+        <div class="ov-sub"   id="ov-s"></div>
+        <button class="btn" onclick="leaveGame()">Nouvelle partie</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><div class="ld p1"></div>Joueur 1</span>
+      <span><div class="ld p2"></div>Joueur 2</span>
+      <span><div class="ld bh"></div>Trou noir</span>
+      <span><div class="ld aj"></div>Adjacent</span>
+    </div>
+    <p class="status-msg" id="status-msg"></p>
+  </div>
+</div>
+
+<script>
+  // ════════════════════════════════════════════════
+  //  CONFIG SUPABASE
+  // ════════════════════════════════════════════════
+  const SUPABASE_URL  = 'https://jlmbdjptfqtwbngjrzzj.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsbWJkanB0ZnF0d2JuZ2pyenpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg4NTUsImV4cCI6MjA5ODIwNDg1NX0.lRW16EaynMdpCnXneBzTft4_Za4RuU5wKJDm42clGUY';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // ════════════════════════════════════════════════
+  //  CONSTANTES PLATEAU
+  // ════════════════════════════════════════════════
+  const ROWS = 6, R = 38, HG = 84, VG = 74, SX = 260, SY = 34;
+
+  // ════════════════════════════════════════════════
+  //  ÉTAT LOCAL
+  // ════════════════════════════════════════════════
+  let myRole    = null;   // 0 = J1, 1 = J2
+  let roomId    = null;
+  let channel   = null;   // canal Realtime Supabase
+  let gameOver  = false;
+  let isPlacing = false;  // verrou anti-double-clic
+
+  // ════════════════════════════════════════════════
+  //  UTILITAIRES PLATEAU
+  // ════════════════════════════════════════════════
+
+  function adj(r, c) {
+    return [[-1,-1],[-1,0],[0,-1],[0,1],[1,0],[1,1]]
+      .map(([dr,dc]) => ({ r: r+dr, c: c+dc }))
+      .filter(({ r:nr, c:nc }) => nr >= 0 && nr < ROWS && nc >= 0 && nc <= nr);
+  }
+
+  function cellPos(r, c) {
+    return { x: SX + (c - r/2)*HG, y: SY + r*VG };
+  }
+
+  function initCells() {
+    const cells = [];
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c <= r; c++)
+        cells.push({ r, c, value: null, player: null });
+    return cells;
+  }
+
+  // ════════════════════════════════════════════════
+  //  LOBBY — créer / rejoindre
+  // ════════════════════════════════════════════════
+
+  function getRoomId() {
+    const v = document.getElementById('room-input').value.trim().toUpperCase();
+    if (!v) { alert('Entre un code de partie.'); return null; }
+    return v;
+  }
+
+  async function createRoom() {
+    const id = getRoomId(); if (!id) return;
+
+    // Vérifier si la partie existe déjà
+    const { data } = await sb.from('games').select('id').eq('id', id).single();
+    if (data) { alert('Ce code existe déjà, choisis-en un autre.'); return; }
+
+    const cells = initCells();
+    const { error } = await sb.from('games').insert({
+      id,
+      cells,
+      turn:    0,
+      cur_num: 1,
+      over:    false,
+      players: 1      // 1 joueur connecté
+    });
+    if (error) { alert('Erreur création : ' + error.message); return; }
+
+    roomId = id; myRole = 0;
+    showLobbyInfo(id, 'Partie créée ! En attente du Joueur 2…');
+    subscribeRoom();
+  }
+
+  async function joinRoom() {
+    const id = getRoomId(); if (!id) return;
+
+    const { data, error } = await sb.from('games').select('*').eq('id', id).single();
+    if (error || !data) { alert('Partie introuvable. Vérifie le code.'); return; }
+    if (data.players >= 2) { alert('La partie est déjà complète.'); return; }
+
+    // Marquer le 2e joueur comme connecté
+    await sb.from('games').update({ players: 2 }).eq('id', id);
+
+    roomId = id; myRole = 1;
+    showLobbyInfo(id, 'Vous avez rejoint en tant que Joueur 2 !');
+    subscribeRoom();
+
+    // Appliquer l'état actuel immédiatement
+    applyState(data);
+    startGame();
+  }
+
+  function showLobbyInfo(id, msg) {
+    const el = document.getElementById('lobby-info');
+    el.style.display = 'block';
+    el.innerHTML = `<div class="room-info">
+      <strong>Code : ${id}</strong><br>${msg}<br>
+      <span style="font-size:11px;opacity:.8">Partage ce code à ton adversaire.</span>
+    </div>`;
+  }
+
+  // ════════════════════════════════════════════════
+  //  REALTIME — écoute des changements
+  // ════════════════════════════════════════════════
+
+  function subscribeRoom() {
+    channel = sb.channel('game-' + roomId)
+      .on('postgres_changes', {
+        event:  'UPDATE',
+        schema: 'public',
+        table:  'games',
+        filter: `id=eq.${roomId}`
+      }, payload => {
+        const row = payload.new;
+
+        // Le 2e joueur vient de rejoindre → J1 démarre le jeu
+        if (row.players === 2 && myRole === 0) {
+          startGame();
+        }
+
+        applyState(row);
+      })
+      .subscribe();
+  }
+
+  // ════════════════════════════════════════════════
+  //  AFFICHAGE DU JEU
+  // ════════════════════════════════════════════════
+
+  function startGame() {
+    document.getElementById('lobby').style.display = 'none';
+    document.getElementById('game').style.display  = 'block';
+    const badge = document.getElementById('my-badge');
+    badge.textContent = myRole === 0 ? 'Vous êtes Joueur 1 (bleu)' : 'Vous êtes Joueur 2 (orange)';
+    badge.className   = 'my-badge ' + (myRole === 0 ? 'p1' : 'p2');
+  }
+
+  // ════════════════════════════════════════════════
+  //  LOGIQUE DE JEU
+  // ════════════════════════════════════════════════
+
+  function applyState(row) {
+    const { cells, turn, cur_num, over } = row;
+    gameOver = over;
+
+    if (over) {
+      const bh     = cells.find(x => x.value === null);
+      const adjSet = bh ? new Set(adj(bh.r, bh.c).map(a => a.r*10+a.c)) : new Set();
+      renderBoard(cells, bh, adjSet);
+      const sc = computeScores(cells, adjSet);
+      showResult(sc);
+      updateScoreBar(cells, turn, cur_num, sc);
+    } else {
+      renderBoard(cells, null, null);
+      updateScoreBar(cells, turn, cur_num, null);
+    }
+  }
+
+  async function place(r, c) {
+    if (gameOver || isPlacing) return;
+
+    // Lire l'état frais depuis Supabase
+    const { data: row } = await sb.from('games').select('*').eq('id', roomId).single();
+    if (!row) return;
+
+    const { cells, turn, cur_num } = row;
+
+    // Vérifications
+    if (turn !== myRole) {
+      setStatus("Ce n'est pas votre tour.");
+      setTimeout(() => setStatus(''), 1500);
+      return;
+    }
+    const cell = cells.find(x => x.r === r && x.c === c);
+    if (!cell || cell.value !== null) return;
+
+    isPlacing = true;
+    setStatus('');
+
+    cell.value  = cur_num;
+    cell.player = turn;
+
+    let newTurn   = 1 - turn;
+    let newCurNum = cur_num;
+    if (turn === 1) newCurNum = cur_num + 1;
+
+    const over = newCurNum > 10 && newTurn === 0;
+
+    await sb.from('games').update({
+      cells,
+      turn:    newTurn,
+      cur_num: newCurNum,
+      over
+    }).eq('id', roomId);
+
+    isPlacing = false;
+  }
+
+  function computeScores(cells, adjSet) {
+    const sc = [0, 0];
+    for (const c of cells)
+      if (adjSet.has(c.r*10+c.c) && c.player !== null)
+        sc[c.player] += c.value;
+    return sc;
+  }
+
+  function showResult(sc) {
+    const names = ['Joueur 1', 'Joueur 2'];
+    const loser = sc[0] > sc[1] ? 0 : sc[1] > sc[0] ? 1 : -1;
+    document.getElementById('ov-t').textContent = loser === -1
+      ? 'Égalité !'
+      : `${names[loser]} a perdu !`;
+    document.getElementById('ov-s').textContent = loser === -1
+      ? `Chacun totalise ${sc[0]} pt(s) autour du trou noir.`
+      : `${names[loser]} : ${sc[loser]} pt(s) — ${names[1-loser]} : ${sc[1-loser]} pt(s).`;
+    document.getElementById('ov').style.display = 'flex';
+  }
+
+  function updateScoreBar(cells, turn, curNum, sc) {
+    const names = ['Joueur 1', 'Joueur 2'];
+    if (!sc) {
+      const tots = [0, 0];
+      for (const c of cells) if (c.value !== null) tots[c.player] += c.value;
+      document.getElementById('s1').textContent = `Joueur 1 — ${tots[0]}`;
+      document.getElementById('s2').textContent = `Joueur 2 — ${tots[1]}`;
+    } else {
+      document.getElementById('s1').textContent = `Joueur 1 — ${sc[0]}`;
+      document.getElementById('s2').textContent = `Joueur 2 — ${sc[1]}`;
+    }
+    if (!gameOver) {
+      document.getElementById('tlbl').textContent = `Tour du ${names[turn]}`;
+      document.getElementById('nlbl').innerHTML   = `${names[turn]} place son <strong>${curNum}</strong>`;
+    }
+  }
+
+  function setStatus(msg) {
+    document.getElementById('status-msg').textContent = msg;
+  }
+
+  async function leaveGame() {
+    // Supprimer la partie pour pouvoir la recréer
+    if (roomId) await sb.from('games').delete().eq('id', roomId);
+    if (channel) sb.removeChannel(channel);
+    channel = null; roomId = null; myRole = null; gameOver = false;
+    document.getElementById('game').style.display   = 'none';
+    document.getElementById('lobby').style.display  = 'block';
+    document.getElementById('lobby-info').style.display = 'none';
+    document.getElementById('room-input').value = '';
+    document.getElementById('ov').style.display = 'none';
+  }
+
+  // ════════════════════════════════════════════════
+  //  RENDU SVG
+  // ════════════════════════════════════════════════
+
+  function mk(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+
+  function mkTxt(val, fill, size) {
+    const t = mk('text');
+    t.setAttribute('text-anchor',       'middle');
+    t.setAttribute('dominant-baseline', 'central');
+    t.setAttribute('font-size',         size);
+    t.setAttribute('font-weight',       '500');
+    t.setAttribute('fill',              fill);
+    t.textContent = val;
+    return t;
+  }
+
+  function renderBoard(cells, bh, adjSet) {
+    const svg = document.getElementById('board');
+    svg.innerHTML = '';
+
+    for (const cell of cells) {
+      const { x, y } = cellPos(cell.r, cell.c);
+      const isBH  = bh && cell.r === bh.r && cell.c === bh.c;
+      const isAdj = adjSet && adjSet.has(cell.r*10+cell.c);
+
+      const g  = mk('g');
+      g.setAttribute('transform', `translate(${x},${y})`);
+
+      const ci = mk('circle');
+      ci.setAttribute('r',            R);
+      ci.setAttribute('cx',           0);
+      ci.setAttribute('cy',           0);
+      ci.setAttribute('stroke-width', isAdj ? 4 : 3);
+
+      if (isBH) {
+        ci.setAttribute('fill',   '#2c2c2a');
+        ci.setAttribute('stroke', '#2c2c2a');
+      } else if (isAdj) {
+        ci.setAttribute('fill',   cell.player === 0 ? '#b5d4f4' : '#f5c4b3');
+        ci.setAttribute('stroke', '#ef9f27');
+      } else if (cell.player === 0) {
+        ci.setAttribute('fill',   '#b5d4f4');
+        ci.setAttribute('stroke', '#185fa5');
+      } else if (cell.player === 1) {
+        ci.setAttribute('fill',   '#f5c4b3');
+        ci.setAttribute('stroke', '#993c1d');
+      } else {
+        ci.setAttribute('fill',   'transparent');
+        ci.setAttribute('stroke', '#5f5e5a');
+      }
+
+      g.appendChild(ci);
+
+      if (isBH) {
+        g.appendChild(mkTxt('★', 'white', 16));
+      } else if (cell.value !== null) {
+        g.appendChild(mkTxt(cell.value, cell.player === 0 ? '#0c447c' : '#712b13', 18));
+      }
+
+      if (!gameOver && cell.value === null) {
+        g.style.cursor = 'pointer';
+        const rr = cell.r, cc = cell.c;
+        g.addEventListener('mouseenter', () => ci.setAttribute('stroke', '#378add'));
+        g.addEventListener('mouseleave', () => ci.setAttribute('stroke', '#5f5e5a'));
+        g.addEventListener('click',      () => place(rr, cc));
+      }
+
+      svg.appendChild(g);
+    }
+  }
+</script>
+</body>
+</html>
