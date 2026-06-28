@@ -14,46 +14,54 @@ h1{text-align:center;font-size:22px;font-weight:500;color:#1a1a18;margin-bottom:
 .subtitle{text-align:center;font-size:13px;color:#888780;margin-bottom:20px}
 
 /* ── Lobby ── */
-#lobby{display:flex;flex-direction:column;align-items:center;gap:20px}
-.lobby-status{font-size:13px;color:#5f5e5a;text-align:center;padding:10px 16px;background:#fff;border:.5px solid #d3d1c7;border-radius:10px;width:100%;max-width:360px}
-.lobby-status strong{color:#1a1a18}
-.picker-row{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
-.picker-label{font-size:13px;color:#5f5e5a;font-weight:500;text-align:center}
+#lobby{display:flex;flex-direction:column;align-items:center;gap:16px}
+.lobby-card{background:#fff;border:.5px solid #d3d1c7;border-radius:12px;padding:1.25rem;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
+.lobby-card label{font-size:13px;color:#5f5e5a;font-weight:500}
+.lobby-card input{width:100%;padding:8px 12px;border:.5px solid #b4b2a9;border-radius:8px;font-size:15px;font-family:inherit;background:#fff;color:#1a1a18;letter-spacing:.1em;text-transform:uppercase}
+.lobby-card input:focus{outline:none;border-color:#1a1a18}
+.btn-row{display:flex;gap:8px}
+.btn{padding:9px 20px;border-radius:8px;border:.5px solid #888780;background:transparent;font-size:14px;cursor:pointer;color:#1a1a18;font-family:inherit;flex:1}
+.btn:hover{background:#eeede8}
+.btn.primary{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.btn.primary:hover{background:#3a3a38}
+.lobby-info{background:#e6f1fb;border-radius:8px;padding:10px 14px;font-size:13px;color:#185fa5;line-height:1.6;display:none}
+.lobby-info strong{font-weight:500}
+.lobby-err{background:#fceaea;border-radius:8px;padding:8px 14px;font-size:13px;color:#993c1d;display:none}
+
+/* ── Choix couleur ── */
+#color-pick{display:none;flex-direction:column;align-items:center;gap:14px;width:100%}
+.pick-title{font-size:14px;color:#1a1a18;font-weight:500;text-align:center}
 .swatches{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .swatch{width:48px;height:48px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;position:relative}
-.swatch:hover{transform:scale(1.12)}
+.swatch:hover:not(.disabled){transform:scale(1.12)}
 .swatch.selected{border-color:#1a1a18;transform:scale(1.12)}
-.swatch.disabled{opacity:.3;cursor:not-allowed;transform:none}
+.swatch.disabled{opacity:.3;cursor:not-allowed;transform:none !important}
 .swatch .check{display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:20px}
 .swatch.selected .check{display:flex}
 .player-preview{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:10px;border:.5px solid #d3d1c7;background:#fff;font-size:13px;color:#1a1a18;min-width:200px;justify-content:center}
 .preview-dot{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(0,0,0,.12);transition:background .2s;flex-shrink:0}
-.waiting-msg{font-size:13px;color:#888780;text-align:center;padding:12px}
-.ready-badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;background:#e6f6ee;color:#2e6e29}
+.ready-msg{font-size:13px;color:#2e6e29;background:#e6f6ee;padding:6px 16px;border-radius:20px;display:none}
+.waiting-other{font-size:13px;color:#888780;text-align:center;display:none}
 
 /* ── Game ── */
 #game{display:none}
 .topbar{display:flex;justify-content:center;align-items:center;gap:14px;padding:10px 0 2px}
 .pill{padding:5px 16px;border-radius:20px;font-size:13px;font-weight:500}
-.turn-lbl{font-size:12px;color:#888780;text-align:center}
+.turn-lbl{font-size:12px;color:#888780}
 .num-lbl{font-size:12px;color:#888780;text-align:center;margin-bottom:2px}
 .num-lbl strong{color:#1a1a18}
 .rounds{display:flex;justify-content:center;gap:8px;margin-bottom:4px}
 .round-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid #b4b2a9;background:transparent;transition:background .3s,border-color .3s}
-.my-turn-banner{text-align:center;font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;margin-bottom:4px;display:inline-block}
-.banner-wrap{text-align:center;margin-bottom:2px}
+.banner-wrap{text-align:center;margin-bottom:4px}
+.my-turn-banner{display:inline-block;font-size:12px;font-weight:500;padding:4px 14px;border-radius:20px}
 .board-wrap{position:relative;max-width:560px;margin:0 auto}
 svg#board{display:block;width:100%}
-
-/* ── Boxes latérales ── */
-.score-side{position:absolute;top:50%;transform:translateY(-50%);display:none;flex-direction:column;align-items:center;gap:4px;z-index:5}
+.score-side{position:absolute;top:50%;transform:translateY(-50%);display:none;flex-direction:column;align-items:center;z-index:5}
 .score-side.show{display:flex}
 #score-left{left:2px}
 #score-right{right:2px}
 .side-box{border:3px solid;border-radius:10px;width:52px;min-height:52px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',system-ui;font-weight:900;font-size:28px;transition:transform .2s}
 .side-box.bump{transform:scale(1.28)}
-
-/* ── Overlay ── */
 .round-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:10}
 .round-overlay.show{display:flex}
 .round-overlay-bg{position:absolute;inset:0;background:rgba(245,244,238,.88);backdrop-filter:blur(4px)}
@@ -67,8 +75,6 @@ svg#board{display:block;width:100%}
 .score-dash{font-size:22px;color:#888780}
 .btn-next{margin-top:14px;padding:8px 28px;border-radius:8px;border:.5px solid #888780;background:#1a1a18;font-size:13px;cursor:pointer;color:#fff;font-family:inherit}
 .btn-next:hover{background:#3a3a38}
-
-/* ── Confettis ── */
 #confetti-canvas{position:absolute;inset:0;pointer-events:none;z-index:11;display:none}
 </style>
 </head>
@@ -79,16 +85,28 @@ svg#board{display:block;width:100%}
 
   <!-- LOBBY -->
   <div id="lobby">
-    <div class="lobby-status" id="lobby-status">Connexion en cours…</div>
-    <div class="picker-row" id="picker-area" style="display:none">
-      <div class="picker-label" id="picker-label">Choisis ta couleur</div>
+    <div class="lobby-card">
+      <label>Code de la partie</label>
+      <input id="code-input" type="text" placeholder="ex: SOLEIL42" maxlength="12"/>
+      <div class="btn-row">
+        <button class="btn primary" onclick="createRoom()">Créer</button>
+        <button class="btn" onclick="joinRoom()">Rejoindre</button>
+      </div>
+      <div class="lobby-info" id="lobby-info"></div>
+      <div class="lobby-err" id="lobby-err"></div>
+    </div>
+
+    <!-- Choix couleur (affiché après connexion) -->
+    <div id="color-pick">
+      <div class="pick-title" id="pick-title">Choisis ta couleur</div>
       <div class="swatches" id="swatches"></div>
       <div class="player-preview">
         <div class="preview-dot" id="preview-dot"></div>
         <span id="preview-name">Aucune couleur choisie</span>
       </div>
+      <div class="ready-msg" id="ready-msg">✓ Prêt ! En attente de l'adversaire…</div>
+      <div class="waiting-other" id="waiting-other">En attente du Joueur 2…</div>
     </div>
-    <div class="waiting-msg" id="waiting-msg" style="display:none"></div>
   </div>
 
   <!-- JEU -->
@@ -127,16 +145,12 @@ svg#board{display:block;width:100%}
 </div>
 
 <script>
-// ════════════════════════════════════════════════
-//  CONFIG SUPABASE
-// ════════════════════════════════════════════════
+// ── Supabase ──────────────────────────────────────────────────
 const SB_URL  = 'https://jlmbdjptfqtwbngjrzzj.supabase.co';
 const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsbWJkanB0ZnF0d2JuZ2pyenpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg4NTUsImV4cCI6MjA5ODIwNDg1NX0.lRW16EaynMdpCnXneBzTft4_Za4RuU5wKJDm42clGUY';
 const sb = supabase.createClient(SB_URL, SB_ANON);
 
-// ════════════════════════════════════════════════
-//  PALETTE
-// ════════════════════════════════════════════════
+// ── Palette ───────────────────────────────────────────────────
 const PAL=[
   {h:'#FF8A89',n:'Rose corail',d:'#b54b4a'},
   {h:'#FFCE86',n:'Jaune soleil',d:'#8a6010'},
@@ -146,143 +160,161 @@ const PAL=[
   {h:'#C99EE3',n:'Violet lavande',d:'#5c2e9a'},
 ];
 
-// ════════════════════════════════════════════════
-//  ÉTAT LOCAL
-// ════════════════════════════════════════════════
-let myRole = null;      // 0 ou 1, attribué aléatoirement
-let myColor = null;     // index PAL choisi
-let C = [null,null];    // couleurs actives en jeu
-let channel = null;
+// ── État global ───────────────────────────────────────────────
+let roomId=null, myRole=null, myColor=null;
+let C=[null,null], channel=null;
+let otherColor=null; // couleur choisie par l'autre joueur
 
-// Jeu
+// ── Plateau ───────────────────────────────────────────────────
 const ROWS=6,R=36,HG=80,VG=70,SX=260,SY=58;
 let cells=[],turn=0,curNum=1,gameOver=false;
 let roundIdx=0,wins=[0,0],animating=false,ssc=[0,0];
 
-// ════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════
-async function init(){
-  // Récupère l'état actuel
-  const {data,error} = await sb.from('games').select('*').eq('id','main').single();
-  if(error){ setStatus('Erreur de connexion. Recharge la page.'); return; }
+// ── Helpers UI ────────────────────────────────────────────────
+function showErr(msg){ const e=document.getElementById('lobby-err'); e.textContent=msg; e.style.display='block'; }
+function hideErr(){ document.getElementById('lobby-err').style.display='none'; }
+function showInfo(html){ const e=document.getElementById('lobby-info'); e.innerHTML=html; e.style.display='block'; }
 
-  // Attribue le rôle aléatoirement selon qui est déjà là
-  if(data.p0_color === null && data.p1_color === null){
-    // Premier arrivé → rôle aléatoire entre 0 et 1
-    myRole = Math.random() < 0.5 ? 0 : 1;
-  } else if(data.p0_color === null){
-    myRole = 0;
-  } else if(data.p1_color === null){
-    myRole = 1;
-  } else {
-    // Partie en cours, reconnexion
-    myRole = 0; // fallback spectateur
+function getCode(){
+  const v=document.getElementById('code-input').value.trim().toUpperCase();
+  if(!v){ showErr('Entre un code de partie.'); return null; }
+  hideErr(); return v;
+}
+
+// ── Créer une partie ──────────────────────────────────────────
+async function createRoom(){
+  const code=getCode(); if(!code) return;
+
+  const {data:existing}=await sb.from('games').select('id').eq('id',code).single();
+  if(existing){ showErr('Ce code existe déjà. Choisis-en un autre.'); return; }
+
+  const {error}=await sb.from('games').insert({
+    id:code, phase:'lobby',
+    p0_color:null, p1_color:null,
+    cells:null, turn:0, cur_num:1, over:false,
+    round_idx:0, wins:[0,0]
+  });
+  if(error){ showErr('Erreur : '+error.message); return; }
+
+  roomId=code; myRole=0;
+  showInfo(`<strong>Code : ${code}</strong><br>Envoie ce code à ton adversaire !`);
+  showColorPicker();
+  subscribe();
+}
+
+// ── Rejoindre une partie ──────────────────────────────────────
+async function joinRoom(){
+  const code=getCode(); if(!code) return;
+
+  const {data,error}=await sb.from('games').select('*').eq('id',code).single();
+  if(error||!data){ showErr('Partie introuvable. Vérifie le code.'); return; }
+  if(data.p1_color!==null && data.phase!=='lobby'){ showErr('La partie est déjà complète.'); return; }
+
+  roomId=code; myRole=1;
+
+  // Si J0 a déjà choisi une couleur, on la note
+  if(data.p0_color!==null) otherColor=data.p0_color;
+
+  showInfo(`<strong>Code : ${code}</strong><br>Tu rejoins la partie en tant que Joueur 2 !`);
+  showColorPicker();
+  subscribe();
+}
+
+// ── Sélecteur de couleur ──────────────────────────────────────
+function showColorPicker(){
+  document.getElementById('color-pick').style.display='flex';
+  document.getElementById('pick-title').textContent=
+    myRole===0 ? 'Joueur 1 — choisis ta couleur' : 'Joueur 2 — choisis ta couleur';
+
+  if(myRole===0){
+    document.getElementById('waiting-other').style.display='block';
   }
 
-  setStatus(`Tu es <strong>Joueur ${myRole+1}</strong> — choisis ta couleur`);
-  buildSwatches(data);
-  document.getElementById('picker-area').style.display='flex';
-  subscribeRoom();
+  buildSwatches();
 }
 
-function setStatus(html){
-  document.getElementById('lobby-status').innerHTML = html;
-}
-
-// ════════════════════════════════════════════════
-//  SWATCHES
-// ════════════════════════════════════════════════
-function buildSwatches(data){
-  const c = document.getElementById('swatches');
-  c.innerHTML='';
+function buildSwatches(){
+  const c=document.getElementById('swatches'); c.innerHTML='';
   PAL.forEach((col,ci)=>{
     const d=document.createElement('div');
     d.className='swatch'; d.style.background=col.h;
     d.innerHTML='<span class="check">✓</span>';
-    d.id='sw'+ci; d.onclick=()=>pickColor(ci,data);
+    d.id='sw'+ci; d.onclick=()=>pickColor(ci);
     c.appendChild(d);
   });
+  refreshSwatches();
 }
 
-async function pickColor(ci, data){
-  // Vérifie que la couleur n'est pas prise par l'autre joueur
-  const other = myRole===0 ? data?.p1_color : data?.p0_color;
-  if(other === ci){ return; }
-
-  myColor = ci;
-  document.getElementById('preview-dot').style.background=PAL[ci].h;
-  document.getElementById('preview-name').textContent=PAL[ci].n;
-
-  // Refresh swatches visuellement
-  PAL.forEach((_,i)=>{
-    const el=document.getElementById('sw'+i);
+function refreshSwatches(){
+  PAL.forEach((_,ci)=>{
+    const el=document.getElementById('sw'+ci);
     if(!el) return;
     el.className='swatch';
-    if(i===ci) el.classList.add('selected');
+    if(ci===myColor) el.classList.add('selected');
+    if(ci===otherColor) el.classList.add('disabled');
   });
-
-  // Écrit dans Supabase
-  const field = myRole===0 ? 'p0_color' : 'p1_color';
-  await sb.from('games').update({[field]:ci}).eq('id','main');
-
-  document.getElementById('waiting-msg').style.display='block';
-  document.getElementById('waiting-msg').innerHTML=
-    `<span class="ready-badge">✓ Prêt !</span> En attente de l'autre joueur…`;
 }
 
-// ════════════════════════════════════════════════
-//  REALTIME
-// ════════════════════════════════════════════════
-function subscribeRoom(){
-  channel = sb.channel('bh-main')
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'games',filter:'id=eq.main'},
-      payload => applyRow(payload.new))
+async function pickColor(ci){
+  if(ci===otherColor) return; // couleur prise par l'autre
+  myColor=ci;
+
+  document.getElementById('preview-dot').style.background=PAL[ci].h;
+  document.getElementById('preview-name').textContent=PAL[ci].n;
+  refreshSwatches();
+
+  const field=myRole===0?'p0_color':'p1_color';
+  await sb.from('games').update({[field]:ci}).eq('id',roomId);
+
+  document.getElementById('ready-msg').style.display='block';
+}
+
+// ── Realtime ──────────────────────────────────────────────────
+function subscribe(){
+  channel=sb.channel('room-'+roomId)
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'games',filter:`id=eq.${roomId}`},
+      p=>onRow(p.new))
     .subscribe();
 }
 
-function applyRow(row){
-  // Met à jour les swatches si l'autre joueur a choisi
-  refreshSwatchesFromRow(row);
-
-  // Les deux joueurs ont choisi → démarre le jeu
-  if(row.p0_color !== null && row.p1_color !== null && row.phase === 'lobby'){
-    startGame(row);
+function onRow(row){
+  // Mise à jour couleur de l'autre joueur → grise le swatch
+  const oc=myRole===0?row.p1_color:row.p0_color;
+  if(oc!==null && oc!==otherColor){
+    otherColor=oc;
+    // Si on avait choisi la même couleur, on la libère
+    if(myColor===oc){ myColor=null; document.getElementById('preview-dot').style.background='transparent'; document.getElementById('preview-name').textContent='Aucune couleur choisie'; document.getElementById('ready-msg').style.display='none'; }
+    refreshSwatches();
   }
 
-  // Mise à jour pendant le jeu
-  if(row.phase === 'playing'){
-    applyGameState(row);
+  // Les deux ont choisi → démarre
+  if(row.p0_color!==null && row.p1_color!==null && row.phase==='lobby'){
+    if(myRole===0) launchGame(row); // J0 initialise le plateau
+    else waitForPlaying(row);
   }
+
+  if(row.phase==='playing') applyGameState(row);
 }
 
-function refreshSwatchesFromRow(row){
-  const otherColor = myRole===0 ? row.p1_color : row.p0_color;
-  PAL.forEach((_,i)=>{
-    const el=document.getElementById('sw'+i);
-    if(!el) return;
-    el.classList.remove('disabled');
-    if(i === otherColor) el.classList.add('disabled');
-  });
+// ── Lancement ─────────────────────────────────────────────────
+async function launchGame(row){
+  C=[PAL[row.p0_color],PAL[row.p1_color]];
+  const initCells=[];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<=r;c++) initCells.push({r,c,value:null,player:null});
+  await sb.from('games').update({
+    phase:'playing',cells:initCells,
+    turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
+  }).eq('id',roomId);
+  showGame(row.p0_color,row.p1_color);
 }
 
-// ════════════════════════════════════════════════
-//  DÉMARRAGE DU JEU
-// ════════════════════════════════════════════════
-async function startGame(row){
-  C = [PAL[row.p0_color], PAL[row.p1_color]];
+async function waitForPlaying(row){
+  // J1 attend que J0 ait écrit l'état playing (déjà géré par onRow)
+  C=[PAL[row.p0_color],PAL[row.p1_color]];
+}
 
-  // Seul J0 initialise le plateau (pour éviter double écriture)
-  if(myRole === 0){
-    const initCells = [];
-    for(let r=0;r<ROWS;r++) for(let c=0;c<=r;c++) initCells.push({r,c,value:null,player:null});
-    await sb.from('games').update({
-      phase:'playing', cells:initCells,
-      turn:0, cur_num:1, over:false,
-      round_idx:0, wins:[0,0]
-    }).eq('id','main');
-  }
-
+function showGame(c0,c1){
+  C=[PAL[c0],PAL[c1]];
   document.getElementById('lobby').style.display='none';
   document.getElementById('game').style.display='block';
   applyColors();
@@ -291,106 +323,70 @@ async function startGame(row){
 function applyColors(){
   [0,1].forEach(pi=>{
     const c=C[pi];
-    document.getElementById('sp'+pi).style.background=c.h;
-    document.getElementById('sp'+pi).style.color=c.d;
-    document.getElementById('bx'+pi).style.borderColor=c.h;
-    document.getElementById('bx'+pi).style.color=c.d;
+    document.getElementById('sp'+pi).style.cssText+=`;background:${c.h};color:${c.d}`;
+    document.getElementById('bx'+pi).style.cssText+=`;border-color:${c.h};color:${c.d}`;
   });
-  document.getElementById('sbl').style.borderColor=C[0].h;
-  document.getElementById('sbl').style.color=C[0].d;
-  document.getElementById('sbr').style.borderColor=C[1].h;
-  document.getElementById('sbr').style.color=C[1].d;
+  document.getElementById('sbl').style.cssText+=`;border-color:${C[0].h};color:${C[0].d}`;
+  document.getElementById('sbr').style.cssText+=`;border-color:${C[1].h};color:${C[1].d}`;
 }
 
-// ════════════════════════════════════════════════
-//  ÉTAT DU JEU
-// ════════════════════════════════════════════════
+// ── État jeu ──────────────────────────────────────────────────
 function applyGameState(row){
-  cells    = row.cells;
-  turn     = row.turn;
-  curNum   = row.cur_num;
-  gameOver = row.over;
-  roundIdx = row.round_idx;
-  wins     = Array.isArray(row.wins) ? row.wins : JSON.parse(row.wins);
+  if(!C[0]){ C=[PAL[row.p0_color],PAL[row.p1_color]]; showGame(row.p0_color,row.p1_color); }
+  cells=row.cells; turn=row.turn; curNum=row.cur_num;
+  gameOver=row.over; roundIdx=row.round_idx;
+  wins=Array.isArray(row.wins)?row.wins:JSON.parse(row.wins);
 
   if(row.over){
-    const bh    = cells.find(x=>x.value===null);
-    const adjS  = new Set(adjOf(bh.r,bh.c).map(a=>a.r*10+a.c));
-    const sc    = [0,0];
+    const bh=cells.find(x=>x.value===null);
+    const adjS=new Set(adjOf(bh.r,bh.c).map(a=>a.r*10+a.c));
+    const sc=[0,0];
     for(const c of cells) if(adjS.has(c.r*10+c.c)&&c.player!==null) sc[c.player]+=c.value;
     render(bh,null);
-    if(!animating) runAnimation(bh,adjS,sc);
-  } else {
-    render(); updateUI();
-  }
+    if(!animating) runAnim(bh,adjS,sc);
+  } else { render(); updateUI(); }
 }
 
-// ════════════════════════════════════════════════
-//  PLACEMENT
-// ════════════════════════════════════════════════
+// ── Placement ─────────────────────────────────────────────────
 async function place(r,c){
-  if(gameOver||animating) return;
-  if(turn !== myRole){
-    showTurnBanner(false); return;
-  }
-
-  const {data:row} = await sb.from('games').select('*').eq('id','main').single();
+  if(gameOver||animating||turn!==myRole) return;
+  const {data:row}=await sb.from('games').select('*').eq('id',roomId).single();
   if(!row||row.turn!==myRole) return;
-
-  const cell = row.cells.find(x=>x.r===r&&x.c===c);
+  const cell=row.cells.find(x=>x.r===r&&x.c===c);
   if(!cell||cell.value!==null) return;
-
   cell.value=row.cur_num; cell.player=row.turn;
-  let newTurn   = 1-row.turn;
-  let newCurNum = row.cur_num;
-  if(row.turn===1) newCurNum++;
-  const over = newCurNum>10 && newTurn===0;
-
-  await sb.from('games').update({
-    cells:row.cells, turn:newTurn, cur_num:newCurNum, over
-  }).eq('id','main');
+  let nt=1-row.turn, nc=row.cur_num;
+  if(row.turn===1) nc++;
+  await sb.from('games').update({cells:row.cells,turn:nt,cur_num:nc,over:nc>10&&nt===0}).eq('id',roomId);
 }
 
-// ════════════════════════════════════════════════
-//  ANIMATION TRAITS + BOXES LATÉRALES
-// ════════════════════════════════════════════════
-function runAnimation(bh,adjS,sc){
-  animating=true;
-  ssc=[0,0];
+// ── Animation traits ──────────────────────────────────────────
+function runAnim(bh,adjS,sc){
+  animating=true; ssc=[0,0];
   document.getElementById('score-left').classList.add('show');
   document.getElementById('score-right').classList.add('show');
   document.getElementById('sbl').textContent='0';
   document.getElementById('sbr').textContent='0';
-
   const svg=document.getElementById('board');
-  const bp=cpos(bh.r,bh.c);
-  const adjC=adjOf(bh.r,bh.c);
-  let i=0;
-
+  const bp=cpos(bh.r,bh.c), adjC=adjOf(bh.r,bh.c); let i=0;
   function next(){
-    if(i>=adjC.length){
-      animating=false;
-      setTimeout(()=>showResult(sc,bh,adjS),500);
-      return;
-    }
-    const nb=adjC[i++];
-    const np=cpos(nb.r,nb.c);
-    const dx=np.x-bp.x,dy=np.y-bp.y,dist=Math.sqrt(dx*dx+dy*dy);
-    const ux=dx/dist,uy=dy/dist;
-    const ln=mkSVG('line');
+    if(i>=adjC.length){animating=false;setTimeout(()=>showResult(sc,bh,adjS),500);return;}
+    const nb=adjC[i++],np=cpos(nb.r,nb.c);
+    const dx=np.x-bp.x,dy=np.y-bp.y,dist=Math.sqrt(dx*dx+dy*dy),ux=dx/dist,uy=dy/dist;
+    const ln=mkS('line');
     ln.setAttribute('class','al');
-    ln.setAttribute('x1',bp.x+ux*R); ln.setAttribute('y1',bp.y+uy*R);
-    ln.setAttribute('x2',np.x-ux*R); ln.setAttribute('y2',np.y-uy*R);
-    ln.setAttribute('stroke','#2C2C2A'); ln.setAttribute('stroke-width','2.5');
-    ln.setAttribute('stroke-linecap','round'); ln.setAttribute('opacity','0');
+    ln.setAttribute('x1',bp.x+ux*R);ln.setAttribute('y1',bp.y+uy*R);
+    ln.setAttribute('x2',np.x-ux*R);ln.setAttribute('y2',np.y-uy*R);
+    ln.setAttribute('stroke','#2C2C2A');ln.setAttribute('stroke-width','2.5');
+    ln.setAttribute('stroke-linecap','round');ln.setAttribute('opacity','0');
     svg.appendChild(ln);
     let t=0;
     const id=setInterval(()=>{
-      t+=0.12; ln.setAttribute('opacity',Math.min(1,t).toString());
+      t+=0.12;ln.setAttribute('opacity',Math.min(1,t).toString());
       if(t>=1){
         clearInterval(id);
         const ac=cells.find(x=>x.r===nb.r&&x.c===nb.c);
-        if(ac&&ac.player!==null){ ssc[ac.player]+=ac.value; bump(ac.player); }
+        if(ac&&ac.player!==null){ssc[ac.player]+=ac.value;bump(ac.player);}
         setTimeout(next,130);
       }
     },16);
@@ -400,58 +396,36 @@ function runAnimation(bh,adjS,sc){
 
 function bump(pi){
   const el=document.getElementById(pi===0?'sbl':'sbr');
-  el.textContent=ssc[pi];
-  el.classList.add('bump');
+  el.textContent=ssc[pi];el.classList.add('bump');
   setTimeout(()=>el.classList.remove('bump'),200);
 }
 
-// ════════════════════════════════════════════════
-//  RÉSULTAT + ROUND SUIVANT
-// ════════════════════════════════════════════════
+// ── Résultat ──────────────────────────────────────────────────
 function showResult(sc,bh,adjS){
   render(bh,adjS);
   document.getElementById('score-left').classList.remove('show');
   document.getElementById('score-right').classList.remove('show');
-
   const loser=sc[0]>sc[1]?0:sc[1]>sc[0]?1:-1;
-  if(loser===-1){
-    document.getElementById('rmsg').textContent='Égalité ce round !';
-  } else {
-    const w=1-loser;
-    document.getElementById('rmsg').textContent=`Victoire de ${C[w].n} !`;
-    wins[w]++;
-  }
-
+  if(loser===-1) document.getElementById('rmsg').textContent='Égalité ce round !';
+  else{const w=1-loser;document.getElementById('rmsg').textContent=`Victoire de ${C[w].n} !`;wins[w]++;}
   document.getElementById('bv0').textContent=sc[0];
   document.getElementById('bv1').textContent=sc[1];
   ['bx0','bx1'].forEach(id=>document.getElementById(id).classList.remove('winner'));
-  if(loser===0) document.getElementById('bx1').classList.add('winner');
-  else if(loser===1) document.getElementById('bx0').classList.add('winner');
-
-  if(loser!==-1){
-    const w=1-loser,dot=document.getElementById('rd'+roundIdx);
-    dot.style.background=C[w].h; dot.style.borderColor=C[w].h;
-  }
-
+  if(loser===0)document.getElementById('bx1').classList.add('winner');
+  else if(loser===1)document.getElementById('bx0').classList.add('winner');
+  if(loser!==-1){const w=1-loser,dot=document.getElementById('rd'+roundIdx);dot.style.background=C[w].h;dot.style.borderColor=C[w].h;}
   document.getElementById('btn-next').textContent=roundIdx===2?'Voir le résultat final':'Round suivant';
   document.getElementById('ov').classList.add('show');
-  updatePills();
-  confetti(loser===-1?null:1-loser);
+  updatePills(); confetti(loser===-1?null:1-loser);
 }
 
 async function nextRound(){
-  if(roundIdx>=2){ showFinal(); return; }
-  const newRound=roundIdx+1;
-  const initCells=[];
-  for(let r=0;r<ROWS;r++) for(let c=0;c<=r;c++) initCells.push({r,c,value:null,player:null});
-
-  // Seul le joueur dont c'est le tour d'init (myRole===0) envoie la mise à jour
-  if(myRole===0){
-    await sb.from('games').update({
-      cells:initCells, turn:0, cur_num:1, over:false,
-      round_idx:newRound, wins
-    }).eq('id','main');
-  }
+  if(roundIdx>=2){showFinal();return;}
+  if(myRole!==0) return; // seul J0 écrit
+  const nr=roundIdx+1;
+  const ic=[];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<=r;c++) ic.push({r,c,value:null,player:null});
+  await sb.from('games').update({cells:ic,turn:0,cur_num:1,over:false,round_idx:nr,wins}).eq('id',roomId);
   document.getElementById('ov').classList.remove('show');
   document.getElementById('confetti-canvas').style.display='none';
   document.getElementById('board').querySelectorAll('line.al').forEach(l=>l.remove());
@@ -459,71 +433,53 @@ async function nextRound(){
 
 function showFinal(){
   const loser=wins[0]<wins[1]?0:wins[1]<wins[0]?1:-1;
-  document.getElementById('rmsg').textContent=
-    loser===-1?'Égalité générale !':`Victoire de ${C[1-loser].n} sur 3 rounds !`;
+  document.getElementById('rmsg').textContent=loser===-1?'Égalité générale !':`Victoire de ${C[1-loser].n} sur 3 rounds !`;
   const btn=document.getElementById('btn-next');
-  btn.textContent='Rejouer'; btn.onclick=resetGame;
+  btn.textContent='Rejouer';btn.onclick=resetGame;
   document.getElementById('ov').classList.add('show');
   confetti(loser===-1?null:1-loser);
 }
 
 async function resetGame(){
-  if(myRole===0){
-    await sb.from('games').update({
-      p0_color:null, p1_color:null, cells:null,
-      turn:0, cur_num:1, over:false,
-      round_idx:0, wins:[0,0], phase:'lobby'
-    }).eq('id','main');
-  }
+  if(myRole===0) await sb.from('games').delete().eq('id',roomId);
   location.reload();
 }
 
-// ════════════════════════════════════════════════
-//  RENDU SVG
-// ════════════════════════════════════════════════
-const mkSVG=t=>document.createElementNS('http://www.w3.org/2000/svg',t);
+// ── Rendu SVG ─────────────────────────────────────────────────
+const mkS=t=>document.createElementNS('http://www.w3.org/2000/svg',t);
 const cpos=(r,c)=>({x:SX+(c-r/2)*HG,y:SY+r*VG});
-
 function adjOf(r,c){
-  return [[-1,-1],[-1,0],[0,-1],[0,1],[1,0],[1,1]]
+  return[[-1,-1],[-1,0],[0,-1],[0,1],[1,0],[1,1]]
     .map(([dr,dc])=>({r:r+dr,c:c+dc}))
     .filter(({r:nr,c:nc})=>nr>=0&&nr<ROWS&&nc>=0&&nc<=nr);
 }
-
 function mkT(v,fill,size){
-  const t=mkSVG('text');
-  t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','central');
-  t.setAttribute('font-size',size); t.setAttribute('font-weight','900');
+  const t=mkS('text');
+  t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');
+  t.setAttribute('font-size',size);t.setAttribute('font-weight','900');
   t.setAttribute('font-family',"'Nunito',system-ui,sans-serif");
-  t.setAttribute('fill',fill); t.textContent=v; return t;
+  t.setAttribute('fill',fill);t.textContent=v;return t;
 }
-
 function render(bh=null,adjS=null){
   const svg=document.getElementById('board');
   svg.querySelectorAll('g.cell').forEach(e=>e.remove());
   if(!cells||!cells.length) return;
   for(const cell of cells){
-    const {x,y}=cpos(cell.r,cell.c);
+    const{x,y}=cpos(cell.r,cell.c);
     const isBH=bh&&cell.r===bh.r&&cell.c===bh.c;
     const isAdj=adjS&&adjS.has(cell.r*10+cell.c);
-    const g=mkSVG('g'); g.setAttribute('class','cell');
-    g.setAttribute('transform',`translate(${x},${y})`);
-    const ci=mkSVG('circle');
-    ci.setAttribute('r',R); ci.setAttribute('cx',0); ci.setAttribute('cy',0);
-    ci.setAttribute('stroke-width','3');
-    if(isBH){
-      ci.setAttribute('fill','#2C2C2A'); ci.setAttribute('stroke','#2C2C2A');
-    } else if(cell.player!==null){
+    const g=mkS('g');g.setAttribute('class','cell');g.setAttribute('transform',`translate(${x},${y})`);
+    const ci=mkS('circle');
+    ci.setAttribute('r',R);ci.setAttribute('cx',0);ci.setAttribute('cy',0);ci.setAttribute('stroke-width','3');
+    if(isBH){ci.setAttribute('fill','#2C2C2A');ci.setAttribute('stroke','#2C2C2A');}
+    else if(cell.player!==null){
       const col=C[cell.player];
-      ci.setAttribute('fill',col.h);
-      ci.setAttribute('stroke',isAdj?'#2C2C2A':col.d);
+      ci.setAttribute('fill',col.h);ci.setAttribute('stroke',isAdj?'#2C2C2A':col.d);
       ci.setAttribute('stroke-width',isAdj?'3.5':'3');
-    } else {
-      ci.setAttribute('fill','transparent'); ci.setAttribute('stroke','#b4b2a9');
-    }
+    } else{ci.setAttribute('fill','transparent');ci.setAttribute('stroke','#b4b2a9');}
     g.appendChild(ci);
-    if(isBH) g.appendChild(mkT('★','white',18));
-    else if(cell.value!==null) g.appendChild(mkT(cell.value,C[cell.player].d,26));
+    if(isBH)g.appendChild(mkT('★','white',18));
+    else if(cell.value!==null)g.appendChild(mkT(cell.value,C[cell.player].d,26));
     if(!gameOver&&cell.value===null){
       g.style.cursor='pointer';
       const rr=cell.r,cc=cell.c;
@@ -535,46 +491,25 @@ function render(bh=null,adjS=null){
   }
 }
 
-// ════════════════════════════════════════════════
-//  UI
-// ════════════════════════════════════════════════
-function showTurnBanner(isMyTurn){
-  const b=document.getElementById('turn-banner');
-  if(isMyTurn){
-    b.textContent='✦ À ton tour !';
-    b.style.background=C[myRole].h;
-    b.style.color=C[myRole].d;
-  } else {
-    b.textContent="En attente de l'adversaire…";
-    b.style.background='#eeede8';
-    b.style.color='#888780';
-  }
-}
-
+// ── UI ────────────────────────────────────────────────────────
 function updateUI(){
   const c=C[turn];
   document.getElementById('tlbl').textContent=`Tour de ${c.n}`;
   document.getElementById('nlbl').innerHTML=`${c.n} place son <strong>${curNum}</strong>`;
-  showTurnBanner(turn===myRole);
+  const b=document.getElementById('turn-banner');
+  if(turn===myRole){b.textContent='✦ À ton tour !';b.style.background=C[myRole].h;b.style.color=C[myRole].d;}
+  else{b.textContent="En attente de l'adversaire…";b.style.background='#eeede8';b.style.color='#888780';}
   updatePills();
 }
-
 function updatePills(){
-  [0,1].forEach(pi=>{
-    if(!C[pi]) return;
-    document.getElementById('sp'+pi).textContent=
-      `${C[pi].n} — ${wins[pi]} victoire${wins[pi]>1?'s':''}`;
-  });
+  [0,1].forEach(pi=>{if(C[pi])document.getElementById('sp'+pi).textContent=`${C[pi].n} — ${wins[pi]} victoire${wins[pi]>1?'s':''}`;});
 }
 
-// ════════════════════════════════════════════════
-//  CONFETTIS
-// ════════════════════════════════════════════════
+// ── Confettis ─────────────────────────────────────────────────
 function confetti(wi){
   const cv=document.getElementById('confetti-canvas');
   const wrap=document.querySelector('.board-wrap');
-  cv.width=wrap.offsetWidth; cv.height=wrap.offsetHeight;
-  cv.style.display='block';
+  cv.width=wrap.offsetWidth;cv.height=wrap.offsetHeight;cv.style.display='block';
   const ctx=cv.getContext('2d');
   const cols=wi!==null?[C[wi].h,'#ffffff',C[wi].d]:[C[0].h,C[1].h,'#ffffff'];
   const ps=Array.from({length:90},()=>({
@@ -586,24 +521,18 @@ function confetti(wi){
   }));
   let raf;
   (function draw(){
-    ctx.clearRect(0,0,cv.width,cv.height);
-    let alive=false;
+    ctx.clearRect(0,0,cv.width,cv.height);let alive=false;
     for(const p of ps){
       p.x+=p.vx;p.y+=p.vy;p.rot+=p.rv;
-      if(p.y<cv.height+20) alive=true;
+      if(p.y<cv.height+20)alive=true;
       ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
       ctx.fillStyle=p.col;ctx.globalAlpha=Math.max(0,1-(p.y/cv.height)*.6);
       ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
     }
-    if(alive) raf=requestAnimationFrame(draw);
-    else{ cv.style.display='none'; cancelAnimationFrame(raf); }
+    if(alive)raf=requestAnimationFrame(draw);
+    else{cv.style.display='none';cancelAnimationFrame(raf);}
   })();
 }
-
-// ════════════════════════════════════════════════
-//  LANCEMENT
-// ════════════════════════════════════════════════
-init();
 </script>
 </body>
 </html>
