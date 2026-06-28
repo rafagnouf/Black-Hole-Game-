@@ -1,471 +1,460 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Black Hole — Multijoueur</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f5f4ee;
-      display: flex;
-      justify-content: center;
-      padding: 2rem 1rem;
-      min-height: 100vh;
-    }
-    .container { max-width: 560px; width: 100%; }
-    h1 { text-align: center; font-size: 22px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
-    .subtitle { text-align: center; font-size: 13px; color: #888780; margin-bottom: 16px; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Black Hole</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f4ee;display:flex;justify-content:center;padding:1.5rem 1rem;min-height:100vh}
+.container{max-width:560px;width:100%}
+h1{text-align:center;font-size:22px;font-weight:500;color:#1a1a18;margin-bottom:4px}
+.subtitle{text-align:center;font-size:13px;color:#888780;margin-bottom:20px}
 
-    /* ── Lobby ── */
-    #lobby {
-      background: #fff;
-      border: 0.5px solid #d3d1c7;
-      border-radius: 12px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    #lobby label { font-size: 13px; color: #5f5e5a; }
-    #lobby input {
-      width: 100%; padding: 8px 12px;
-      border: 0.5px solid #b4b2a9; border-radius: 8px;
-      font-size: 14px; background: #fff; color: #1a1a18; margin-top: 4px;
-    }
-    #lobby input:focus { outline: none; border-color: #185fa5; }
-    .btn {
-      padding: 9px 20px; border-radius: 8px;
-      border: 0.5px solid #888780; background: transparent;
-      font-size: 14px; cursor: pointer; color: #1a1a18;
-    }
-    .btn:hover { background: #eeede8; }
-    .btn-primary { background: #1a1a18; color: #fff; border-color: #1a1a18; }
-    .btn-primary:hover { background: #3a3a38; }
-    .room-info {
-      background: #e6f1fb; border-radius: 8px;
-      padding: 10px 14px; font-size: 13px; color: #185fa5; line-height: 1.6;
-    }
+/* ── Menu ── */
+#menu{display:flex;flex-direction:column;align-items:center;gap:22px}
+.picker-row{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.picker-label{font-size:13px;color:#5f5e5a;font-weight:500}
+.swatches{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.swatch{width:44px;height:44px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;position:relative}
+.swatch:hover{transform:scale(1.12)}
+.swatch.selected{border-color:#1a1a18;transform:scale(1.12)}
+.swatch.disabled{opacity:.3;cursor:not-allowed;transform:none}
+.swatch .check{display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:18px}
+.swatch.selected .check{display:flex}
+.player-preview{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:10px;border:.5px solid #d3d1c7;background:#fff;font-size:13px;color:#1a1a18;min-width:180px;justify-content:center}
+.preview-dot{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(0,0,0,.12);transition:background .2s}
+.divider{width:100%;max-width:360px;border:none;border-top:.5px solid #d3d1c7}
+.btn-start{padding:10px 36px;border-radius:8px;background:#1a1a18;color:#fff;border:none;font-size:14px;cursor:pointer;font-family:inherit;opacity:.4;transition:opacity .2s}
+.btn-start.ready{opacity:1}
+.btn-start.ready:hover{background:#3a3a38}
 
-    /* ── Game ── */
-    #game { display: none; }
-    .score-bar {
-      display: flex; gap: 12px; justify-content: center;
-      align-items: center; margin-bottom: 6px;
-    }
-    .pill { padding: 5px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; }
-    .p1pill { background: #e6f1fb; color: #185fa5; }
-    .p2pill { background: #faece7; color: #993c1d; }
-    .turn-lbl { font-size: 13px; color: #5f5e5a; }
-    .num-lbl { font-size: 12px; color: #888780; text-align: center; margin-bottom: 6px; }
-    .num-lbl strong { color: #1a1a18; }
-    .badge-wrap { text-align: center; margin-bottom: 8px; }
-    .my-badge {
-      display: inline-block; padding: 4px 14px;
-      border-radius: 20px; font-size: 12px; font-weight: 500;
-    }
-    .my-badge.p1 { background: #e6f1fb; color: #185fa5; }
-    .my-badge.p2 { background: #faece7; color: #993c1d; }
+/* ── Game ── */
+#game{display:none}
+.topbar{display:flex;justify-content:center;align-items:center;gap:14px;padding:10px 0 2px}
+.pill{padding:5px 16px;border-radius:20px;font-size:13px;font-weight:500}
+.turn-lbl{font-size:12px;color:#888780}
+.num-lbl{font-size:12px;color:#888780;text-align:center;margin-bottom:2px}
+.num-lbl strong{color:#1a1a18}
+.rounds{display:flex;justify-content:center;gap:8px;margin-bottom:4px}
+.round-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid #b4b2a9;background:transparent;transition:background .3s,border-color .3s}
+.board-wrap{position:relative;max-width:560px;margin:0 auto}
+svg#board{display:block;width:100%}
 
-    .board-wrap { position: relative; }
-    svg { display: block; width: 100%; }
+/* ── Boxes latérales ── */
+.score-side{position:absolute;top:50%;transform:translateY(-50%);display:none;flex-direction:column;align-items:center;gap:4px;z-index:5}
+.score-side.show{display:flex}
+#score-left{left:2px}
+#score-right{right:2px}
+.side-box{border:3px solid;border-radius:10px;width:52px;min-height:52px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',system-ui;font-weight:900;font-size:28px;transition:transform .2s}
+.side-box.bump{transform:scale(1.28)}
 
-    .overlay {
-      position: absolute; inset: 0; display: none;
-      flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(245,244,238,.93); border-radius: 12px; gap: 12px;
-    }
-    .ov-title { font-size: 20px; font-weight: 500; color: #1a1a18; }
-    .ov-sub { font-size: 13px; color: #5f5e5a; text-align: center; max-width: 320px; line-height: 1.5; }
+/* ── Overlay ── */
+.round-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:10}
+.round-overlay.show{display:flex}
+.round-overlay-bg{position:absolute;inset:0;background:rgba(245,244,238,.88);backdrop-filter:blur(4px)}
+.result-card{position:relative;z-index:2;text-align:center}
+.result-msg{font-size:20px;font-weight:500;color:#1a1a18;margin-bottom:16px}
+.score-boxes{display:flex;align-items:center;gap:16px;justify-content:center}
+.score-box{border-radius:12px;border:2.5px solid;padding:12px 24px;min-width:80px;text-align:center;position:relative}
+.score-box .score-val{font-size:32px;font-weight:500;line-height:1}
+.score-box .crown{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:20px;display:none}
+.score-box.winner .crown{display:block}
+.score-dash{font-size:22px;color:#888780}
+.btn-next{margin-top:14px;padding:8px 28px;border-radius:8px;border:.5px solid #888780;background:#1a1a18;font-size:13px;cursor:pointer;color:#fff;font-family:inherit}
+.btn-next:hover{background:#3a3a38}
 
-    .legend {
-      display: flex; gap: 14px; justify-content: center;
-      margin-top: 10px; font-size: 11px; color: #5f5e5a;
-    }
-    .legend span { display: flex; align-items: center; gap: 5px; }
-    .ld { width: 13px; height: 13px; border-radius: 50%; border: 2px solid; }
-    .ld.p1 { background: #b5d4f4; border-color: #185fa5; }
-    .ld.p2 { background: #f5c4b3; border-color: #993c1d; }
-    .ld.bh { background: #2c2c2a; border-color: #2c2c2a; }
-    .ld.aj { background: transparent; border-color: #ef9f27; border-width: 3px; }
-    .status-msg { font-size: 12px; color: #888780; text-align: center; margin-top: 4px; min-height: 18px; }
-  </style>
+/* ── Confettis ── */
+#confetti-canvas{position:absolute;inset:0;pointer-events:none;z-index:11;display:none}
+</style>
 </head>
 <body>
 <div class="container">
   <h1>Black Hole</h1>
-  <p class="subtitle">Jeu de stratégie multijoueur</p>
+  <p class="subtitle">Jeu de stratégie pour 2 joueurs — 3 rounds</p>
 
-  <!-- ══ LOBBY ══ -->
-  <div id="lobby">
-    <div>
-      <label>Code de la partie</label>
-      <input id="room-input" type="text" placeholder="ex: ROUGE42" maxlength="12" />
+  <!-- MENU -->
+  <div id="menu">
+    <div class="picker-row">
+      <div class="picker-label">Joueur 1 — choisis ta couleur</div>
+      <div class="swatches" id="sw0"></div>
+      <div class="player-preview"><div class="preview-dot" id="dot0"></div><span id="name0">Aucune couleur choisie</span></div>
     </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-primary" onclick="createRoom()">Créer une partie</button>
-      <button class="btn" onclick="joinRoom()">Rejoindre</button>
+    <hr class="divider"/>
+    <div class="picker-row">
+      <div class="picker-label">Joueur 2 — choisis ta couleur</div>
+      <div class="swatches" id="sw1"></div>
+      <div class="player-preview"><div class="preview-dot" id="dot1"></div><span id="name1">Aucune couleur choisie</span></div>
     </div>
-    <div id="lobby-info" style="display:none"></div>
+    <button class="btn-start" id="btn-start" onclick="startGame()" disabled>Jouer</button>
   </div>
 
-  <!-- ══ JEU ══ -->
+  <!-- JEU -->
   <div id="game">
-    <div class="badge-wrap">
-      <span class="my-badge" id="my-badge"></span>
+    <div class="topbar">
+      <div class="pill" id="sp0">J1</div>
+      <div class="turn-lbl" id="tlbl">—</div>
+      <div class="pill" id="sp1">J2</div>
     </div>
-    <div class="score-bar">
-      <div class="pill p1pill" id="s1">Joueur 1 — 0</div>
-      <div class="turn-lbl"   id="tlbl">—</div>
-      <div class="pill p2pill" id="s2">Joueur 2 — 0</div>
+    <div class="rounds">
+      <div class="round-dot" id="rd0"></div>
+      <div class="round-dot" id="rd1"></div>
+      <div class="round-dot" id="rd2"></div>
     </div>
     <p class="num-lbl" id="nlbl">&nbsp;</p>
     <div class="board-wrap">
-      <svg id="board" viewBox="0 0 520 460"></svg>
-      <div class="overlay" id="ov">
-        <div class="ov-title" id="ov-t"></div>
-        <div class="ov-sub"   id="ov-s"></div>
-        <button class="btn" onclick="leaveGame()">Nouvelle partie</button>
+      <svg id="board" viewBox="0 0 520 455"></svg>
+      <div class="score-side" id="score-left"><div class="side-box" id="sbl">0</div></div>
+      <div class="score-side" id="score-right"><div class="side-box" id="sbr">0</div></div>
+      <canvas id="confetti-canvas"></canvas>
+      <div class="round-overlay" id="ov">
+        <div class="round-overlay-bg"></div>
+        <div class="result-card">
+          <div class="result-msg" id="rmsg"></div>
+          <div class="score-boxes">
+            <div class="score-box" id="bx0"><div class="crown">👑</div><div class="score-val" id="bv0">0</div></div>
+            <div class="score-dash">—</div>
+            <div class="score-box" id="bx1"><div class="crown">👑</div><div class="score-val" id="bv1">0</div></div>
+          </div>
+          <button class="btn-next" id="btn-next" onclick="nextRound()">Round suivant</button>
+        </div>
       </div>
     </div>
-    <div class="legend">
-      <span><div class="ld p1"></div>Joueur 1</span>
-      <span><div class="ld p2"></div>Joueur 2</span>
-      <span><div class="ld bh"></div>Trou noir</span>
-      <span><div class="ld aj"></div>Adjacent</span>
-    </div>
-    <p class="status-msg" id="status-msg"></p>
   </div>
 </div>
 
 <script>
-  // ════════════════════════════════════════════════
-  //  CONFIG SUPABASE
-  // ════════════════════════════════════════════════
-  const SUPABASE_URL  = 'https://jlmbdjptfqtwbngjrzzj.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsbWJkanB0ZnF0d2JuZ2pyenpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mjg4NTUsImV4cCI6MjA5ODIwNDg1NX0.lRW16EaynMdpCnXneBzTft4_Za4RuU5wKJDm42clGUY';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+// ── Palette ──────────────────────────────────────────────────
+const PAL=[
+  {h:'#FF8A89',n:'Rose corail',d:'#b54b4a'},
+  {h:'#FFCE86',n:'Jaune soleil',d:'#8a6010'},
+  {h:'#B2E0AD',n:'Vert menthe',d:'#2e6e29'},
+  {h:'#B8DEFF',n:'Bleu ciel',d:'#1f62a0'},
+  {h:'#FFB8E6',n:'Rose bonbon',d:'#9e3080'},
+  {h:'#C99EE3',n:'Violet lavande',d:'#5c2e9a'},
+];
 
-  // ════════════════════════════════════════════════
-  //  CONSTANTES PLATEAU
-  // ════════════════════════════════════════════════
-  const ROWS = 6, R = 38, HG = 84, VG = 74, SX = 260, SY = 34;
+// ── État menu ────────────────────────────────────────────────
+let chosen=[null,null];
 
-  // ════════════════════════════════════════════════
-  //  ÉTAT LOCAL
-  // ════════════════════════════════════════════════
-  let myRole    = null;   // 0 = J1, 1 = J2
-  let roomId    = null;
-  let channel   = null;   // canal Realtime Supabase
-  let gameOver  = false;
-  let isPlacing = false;  // verrou anti-double-clic
-
-  // ════════════════════════════════════════════════
-  //  UTILITAIRES PLATEAU
-  // ════════════════════════════════════════════════
-
-  function adj(r, c) {
-    return [[-1,-1],[-1,0],[0,-1],[0,1],[1,0],[1,1]]
-      .map(([dr,dc]) => ({ r: r+dr, c: c+dc }))
-      .filter(({ r:nr, c:nc }) => nr >= 0 && nr < ROWS && nc >= 0 && nc <= nr);
-  }
-
-  function cellPos(r, c) {
-    return { x: SX + (c - r/2)*HG, y: SY + r*VG };
-  }
-
-  function initCells() {
-    const cells = [];
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c <= r; c++)
-        cells.push({ r, c, value: null, player: null });
-    return cells;
-  }
-
-  // ════════════════════════════════════════════════
-  //  LOBBY — créer / rejoindre
-  // ════════════════════════════════════════════════
-
-  function getRoomId() {
-    const v = document.getElementById('room-input').value.trim().toUpperCase();
-    if (!v) { alert('Entre un code de partie.'); return null; }
-    return v;
-  }
-
-  async function createRoom() {
-    const id = getRoomId(); if (!id) return;
-
-    // Vérifier si la partie existe déjà
-    const { data } = await sb.from('games').select('id').eq('id', id).single();
-    if (data) { alert('Ce code existe déjà, choisis-en un autre.'); return; }
-
-    const cells = initCells();
-    const { error } = await sb.from('games').insert({
-      id,
-      cells,
-      turn:    0,
-      cur_num: 1,
-      over:    false,
-      players: 1      // 1 joueur connecté
+function buildSwatches(){
+  [0,1].forEach(pi=>{
+    const c=document.getElementById('sw'+pi);
+    PAL.forEach((col,ci)=>{
+      const d=document.createElement('div');
+      d.className='swatch';d.style.background=col.h;
+      d.innerHTML='<span class="check">✓</span>';
+      d.id=`s${pi}-${ci}`;d.onclick=()=>pick(pi,ci);
+      c.appendChild(d);
     });
-    if (error) { alert('Erreur création : ' + error.message); return; }
+  });
+}
 
-    roomId = id; myRole = 0;
-    showLobbyInfo(id, 'Partie créée ! En attente du Joueur 2…');
-    subscribeRoom();
-  }
+function pick(pi,ci){
+  if(chosen[1-pi]===ci)return;
+  chosen[pi]=ci;refreshSw();refreshPrev();refreshBtn();
+}
 
-  async function joinRoom() {
-    const id = getRoomId(); if (!id) return;
+function refreshSw(){
+  [0,1].forEach(pi=>PAL.forEach((_,ci)=>{
+    const e=document.getElementById(`s${pi}-${ci}`);
+    e.className='swatch';
+    if(chosen[pi]===ci)e.classList.add('selected');
+    if(chosen[1-pi]===ci)e.classList.add('disabled');
+  }));
+}
 
-    const { data, error } = await sb.from('games').select('*').eq('id', id).single();
-    if (error || !data) { alert('Partie introuvable. Vérifie le code.'); return; }
-    if (data.players >= 2) { alert('La partie est déjà complète.'); return; }
+function refreshPrev(){
+  [0,1].forEach(pi=>{
+    const ci=chosen[pi];
+    document.getElementById('dot'+pi).style.background=ci!==null?PAL[ci].h:'transparent';
+    document.getElementById('name'+pi).textContent=ci!==null?PAL[ci].n:'Aucune couleur choisie';
+  });
+}
 
-    // Marquer le 2e joueur comme connecté
-    await sb.from('games').update({ players: 2 }).eq('id', id);
+function refreshBtn(){
+  const r=chosen[0]!==null&&chosen[1]!==null;
+  const b=document.getElementById('btn-start');
+  b.disabled=!r;b.className='btn-start'+(r?' ready':'');
+}
 
-    roomId = id; myRole = 1;
-    showLobbyInfo(id, 'Vous avez rejoint en tant que Joueur 2 !');
-    subscribeRoom();
+// ── Constantes plateau ───────────────────────────────────────
+const ROWS=6,R=36,HG=80,VG=70,SX=260,SY=58;
 
-    // Appliquer l'état actuel immédiatement
-    applyState(data);
-    startGame();
-  }
+// ── État jeu ─────────────────────────────────────────────────
+let cells=[],turn=0,curNum=1,over=false;
+let roundIdx=0,wins=[0,0],anim=false,ssc=[0,0];
+let C=[null,null]; // couleurs actives
 
-  function showLobbyInfo(id, msg) {
-    const el = document.getElementById('lobby-info');
-    el.style.display = 'block';
-    el.innerHTML = `<div class="room-info">
-      <strong>Code : ${id}</strong><br>${msg}<br>
-      <span style="font-size:11px;opacity:.8">Partage ce code à ton adversaire.</span>
-    </div>`;
-  }
+// ── Démarrage ────────────────────────────────────────────────
+function startGame(){
+  if(chosen[0]===null||chosen[1]===null)return;
+  C=[PAL[chosen[0]],PAL[chosen[1]]];
+  applyColors();
+  document.getElementById('menu').style.display='none';
+  document.getElementById('game').style.display='block';
+  roundIdx=0;wins=[0,0];
+  ['rd0','rd1','rd2'].forEach(id=>document.getElementById(id).className='round-dot');
+  initRound();
+}
 
-  // ════════════════════════════════════════════════
-  //  REALTIME — écoute des changements
-  // ════════════════════════════════════════════════
+function applyColors(){
+  [0,1].forEach(pi=>{
+    const c=C[pi];
+    const p=document.getElementById('sp'+pi);p.style.background=c.h;p.style.color=c.d;
+    const b=document.getElementById('bx'+pi);b.style.borderColor=c.h;b.style.color=c.d;
+  });
+  const bl=document.getElementById('sbl'),br=document.getElementById('sbr');
+  bl.style.borderColor=C[0].h;bl.style.color=C[0].d;
+  br.style.borderColor=C[1].h;br.style.color=C[1].d;
+}
 
-  function subscribeRoom() {
-    channel = sb.channel('game-' + roomId)
-      .on('postgres_changes', {
-        event:  'UPDATE',
-        schema: 'public',
-        table:  'games',
-        filter: `id=eq.${roomId}`
-      }, payload => {
-        const row = payload.new;
+// ── Utilitaires ──────────────────────────────────────────────
+const mk=t=>document.createElementNS('http://www.w3.org/2000/svg',t);
+const cpos=(r,c)=>({x:SX+(c-r/2)*HG,y:SY+r*VG});
+const cellOf=(r,c)=>cells.find(x=>x.r===r&&x.c===c);
 
-        // Le 2e joueur vient de rejoindre → J1 démarre le jeu
-        if (row.players === 2 && myRole === 0) {
-          startGame();
+function adjOf(r,c){
+  return [[-1,-1],[-1,0],[0,-1],[0,1],[1,0],[1,1]]
+    .map(([dr,dc])=>({r:r+dr,c:c+dc}))
+    .filter(({r:nr,c:nc})=>nr>=0&&nr<ROWS&&nc>=0&&nc<=nr);
+}
+
+function clearLines(){document.getElementById('board').querySelectorAll('line.al').forEach(l=>l.remove())}
+
+// ── Init round ───────────────────────────────────────────────
+function initRound(){
+  cells=[];
+  for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)cells.push({r,c,value:null,player:null});
+  turn=0;curNum=1;over=false;anim=false;ssc=[0,0];
+  document.getElementById('ov').classList.remove('show');
+  document.getElementById('score-left').classList.remove('show');
+  document.getElementById('score-right').classList.remove('show');
+  document.getElementById('sbl').textContent='0';
+  document.getElementById('sbr').textContent='0';
+  document.getElementById('confetti-canvas').style.display='none';
+  clearLines();render();updateUI();
+}
+
+// ── Placement ────────────────────────────────────────────────
+function place(r,c){
+  if(over||anim)return;
+  const cell=cellOf(r,c);
+  if(!cell||cell.value!==null)return;
+  cell.value=curNum;cell.player=turn;
+  if(turn===1)curNum++;
+  turn=1-turn;
+  if(curNum>10&&turn===0)endRound();
+  else{render();updateUI();}
+}
+
+// ── Fin de round ─────────────────────────────────────────────
+function endRound(){
+  over=true;
+  const bh=cells.find(x=>x.value===null);
+  const adjC=adjOf(bh.r,bh.c);
+  const adjS=new Set(adjC.map(a=>a.r*10+a.c));
+  const sc=[0,0];
+  for(const c of cells)if(adjS.has(c.r*10+c.c)&&c.player!==null)sc[c.player]+=c.value;
+  render(bh,null);
+
+  // Affiche les boxes
+  document.getElementById('score-left').classList.add('show');
+  document.getElementById('score-right').classList.add('show');
+  ssc=[0,0];
+
+  anim=true;
+  const svg=document.getElementById('board');
+  const bp=cpos(bh.r,bh.c);
+  let i=0;
+
+  function next(){
+    if(i>=adjC.length){anim=false;setTimeout(()=>showResult(sc,bh,adjS),500);return;}
+    const nb=adjC[i++];
+    const np=cpos(nb.r,nb.c);
+    const dx=np.x-bp.x,dy=np.y-bp.y,dist=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/dist,uy=dy/dist;
+    const ln=mk('line');
+    ln.setAttribute('class','al');
+    ln.setAttribute('x1',bp.x+ux*R);ln.setAttribute('y1',bp.y+uy*R);
+    ln.setAttribute('x2',np.x-ux*R);ln.setAttribute('y2',np.y-uy*R);
+    ln.setAttribute('stroke','#2C2C2A');ln.setAttribute('stroke-width','2.5');
+    ln.setAttribute('stroke-linecap','round');ln.setAttribute('opacity','0');
+    svg.appendChild(ln);
+    let t=0;
+    const id=setInterval(()=>{
+      t+=0.12;ln.setAttribute('opacity',Math.min(1,t).toString());
+      if(t>=1){
+        clearInterval(id);
+        const ac=cells.find(x=>x.r===nb.r&&x.c===nb.c);
+        if(ac&&ac.player!==null){
+          ssc[ac.player]+=ac.value;
+          bump(ac.player);
         }
+        setTimeout(next,130);
+      }
+    },16);
+  }
+  setTimeout(next,400);
+}
 
-        applyState(row);
-      })
-      .subscribe();
+function bump(pi){
+  const el=document.getElementById(pi===0?'sbl':'sbr');
+  el.textContent=ssc[pi];
+  el.classList.add('bump');
+  setTimeout(()=>el.classList.remove('bump'),200);
+}
+
+// ── Résultat ─────────────────────────────────────────────────
+function showResult(sc,bh,adjS){
+  render(bh,adjS);
+  document.getElementById('score-left').classList.remove('show');
+  document.getElementById('score-right').classList.remove('show');
+
+  const loser=sc[0]>sc[1]?0:sc[1]>sc[0]?1:-1;
+  if(loser===-1){
+    document.getElementById('rmsg').textContent='Égalité ce round !';
+  } else {
+    const w=1-loser;
+    document.getElementById('rmsg').textContent=`Victoire de ${C[w].n} !`;
+    wins[w]++;
   }
 
-  // ════════════════════════════════════════════════
-  //  AFFICHAGE DU JEU
-  // ════════════════════════════════════════════════
+  document.getElementById('bv0').textContent=sc[0];
+  document.getElementById('bv1').textContent=sc[1];
+  ['bx0','bx1'].forEach(id=>document.getElementById(id).classList.remove('winner'));
+  if(loser===0)document.getElementById('bx1').classList.add('winner');
+  else if(loser===1)document.getElementById('bx0').classList.add('winner');
 
-  function startGame() {
-    document.getElementById('lobby').style.display = 'none';
-    document.getElementById('game').style.display  = 'block';
-    const badge = document.getElementById('my-badge');
-    badge.textContent = myRole === 0 ? 'Vous êtes Joueur 1 (bleu)' : 'Vous êtes Joueur 2 (orange)';
-    badge.className   = 'my-badge ' + (myRole === 0 ? 'p1' : 'p2');
+  if(loser!==-1){
+    const w=1-loser,dot=document.getElementById('rd'+roundIdx);
+    dot.style.background=C[w].h;dot.style.borderColor=C[w].h;
   }
 
-  // ════════════════════════════════════════════════
-  //  LOGIQUE DE JEU
-  // ════════════════════════════════════════════════
+  document.getElementById('btn-next').textContent=roundIdx===2?'Voir le résultat final':'Round suivant';
+  document.getElementById('ov').classList.add('show');
+  updatePills();
+  confetti(loser===-1?null:1-loser);
+}
 
-  function applyState(row) {
-    const { cells, turn, cur_num, over } = row;
-    gameOver = over;
+function nextRound(){
+  roundIdx++;
+  if(roundIdx>=3){showFinal();return;}
+  initRound();
+}
 
-    if (over) {
-      const bh     = cells.find(x => x.value === null);
-      const adjSet = bh ? new Set(adj(bh.r, bh.c).map(a => a.r*10+a.c)) : new Set();
-      renderBoard(cells, bh, adjSet);
-      const sc = computeScores(cells, adjSet);
-      showResult(sc);
-      updateScoreBar(cells, turn, cur_num, sc);
+function showFinal(){
+  const loser=wins[0]<wins[1]?0:wins[1]<wins[0]?1:-1;
+  document.getElementById('rmsg').textContent=
+    loser===-1?'Égalité générale !':`Victoire de ${C[1-loser].n} sur 3 rounds !`;
+  const btn=document.getElementById('btn-next');
+  btn.textContent='Changer les couleurs';btn.onclick=goMenu;
+  document.getElementById('ov').classList.add('show');
+  confetti(loser===-1?null:1-loser);
+}
+
+function goMenu(){
+  chosen=[null,null];refreshSw();refreshPrev();refreshBtn();
+  document.getElementById('game').style.display='none';
+  document.getElementById('menu').style.display='flex';
+  document.getElementById('ov').classList.remove('show');
+  document.getElementById('confetti-canvas').style.display='none';
+  document.getElementById('btn-next').onclick=nextRound;
+}
+
+// ── Confettis ────────────────────────────────────────────────
+function confetti(wi){
+  const cv=document.getElementById('confetti-canvas');
+  const wrap=document.querySelector('.board-wrap');
+  cv.width=wrap.offsetWidth;cv.height=wrap.offsetHeight;
+  cv.style.display='block';
+  const ctx=cv.getContext('2d');
+  const cols=wi!==null?[C[wi].h,'#ffffff',C[wi].d]:[C[0].h,C[1].h,'#ffffff'];
+  const ps=Array.from({length:90},()=>({
+    x:Math.random()*cv.width,y:-10-Math.random()*80,
+    w:7+Math.random()*7,h:4+Math.random()*5,
+    rot:Math.random()*360,rv:(Math.random()-.5)*6,
+    vy:2+Math.random()*3,vx:(Math.random()-.5)*2,
+    col:cols[Math.floor(Math.random()*cols.length)],
+  }));
+  let raf;
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    let alive=false;
+    for(const p of ps){
+      p.x+=p.vx;p.y+=p.vy;p.rot+=p.rv;
+      if(p.y<cv.height+20)alive=true;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.col;ctx.globalAlpha=Math.max(0,1-(p.y/cv.height)*.6);
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+    }
+    if(alive)raf=requestAnimationFrame(draw);
+    else{cv.style.display='none';cancelAnimationFrame(raf);}
+  })();
+}
+
+// ── Rendu SVG ────────────────────────────────────────────────
+function mkT(v,fill,size){
+  const t=mk('text');
+  t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');
+  t.setAttribute('font-size',size);t.setAttribute('font-weight','900');
+  t.setAttribute('font-family',"'Nunito',system-ui,sans-serif");
+  t.setAttribute('fill',fill);t.textContent=v;return t;
+}
+
+function render(bh=null,adjS=null){
+  const svg=document.getElementById('board');
+  svg.querySelectorAll('g.cell').forEach(e=>e.remove());
+  for(const cell of cells){
+    const {x,y}=cpos(cell.r,cell.c);
+    const isBH=bh&&cell.r===bh.r&&cell.c===bh.c;
+    const isAdj=adjS&&adjS.has(cell.r*10+cell.c);
+    const g=mk('g');g.setAttribute('class','cell');
+    g.setAttribute('transform',`translate(${x},${y})`);
+    const ci=mk('circle');
+    ci.setAttribute('r',R);ci.setAttribute('cx',0);ci.setAttribute('cy',0);
+    ci.setAttribute('stroke-width','3');
+    if(isBH){
+      ci.setAttribute('fill','#2C2C2A');ci.setAttribute('stroke','#2C2C2A');
+    } else if(cell.player!==null){
+      const col=C[cell.player];
+      ci.setAttribute('fill',col.h);
+      ci.setAttribute('stroke',isAdj?'#2C2C2A':col.d);
+      ci.setAttribute('stroke-width',isAdj?'3.5':'3');
     } else {
-      renderBoard(cells, null, null);
-      updateScoreBar(cells, turn, cur_num, null);
+      ci.setAttribute('fill','transparent');ci.setAttribute('stroke','#b4b2a9');
     }
-  }
-
-  async function place(r, c) {
-    if (gameOver || isPlacing) return;
-
-    // Lire l'état frais depuis Supabase
-    const { data: row } = await sb.from('games').select('*').eq('id', roomId).single();
-    if (!row) return;
-
-    const { cells, turn, cur_num } = row;
-
-    // Vérifications
-    if (turn !== myRole) {
-      setStatus("Ce n'est pas votre tour.");
-      setTimeout(() => setStatus(''), 1500);
-      return;
+    g.appendChild(ci);
+    if(isBH)g.appendChild(mkT('★','white',18));
+    else if(cell.value!==null)g.appendChild(mkT(cell.value,C[cell.player].d,26));
+    if(!over&&cell.value===null){
+      g.style.cursor='pointer';
+      const rr=cell.r,cc=cell.c;
+      g.addEventListener('mouseenter',()=>ci.setAttribute('stroke','#888780'));
+      g.addEventListener('mouseleave',()=>ci.setAttribute('stroke','#b4b2a9'));
+      g.addEventListener('click',()=>place(rr,cc));
     }
-    const cell = cells.find(x => x.r === r && x.c === c);
-    if (!cell || cell.value !== null) return;
-
-    isPlacing = true;
-    setStatus('');
-
-    cell.value  = cur_num;
-    cell.player = turn;
-
-    let newTurn   = 1 - turn;
-    let newCurNum = cur_num;
-    if (turn === 1) newCurNum = cur_num + 1;
-
-    const over = newCurNum > 10 && newTurn === 0;
-
-    await sb.from('games').update({
-      cells,
-      turn:    newTurn,
-      cur_num: newCurNum,
-      over
-    }).eq('id', roomId);
-
-    isPlacing = false;
+    svg.insertBefore(g,svg.firstChild);
   }
+}
 
-  function computeScores(cells, adjSet) {
-    const sc = [0, 0];
-    for (const c of cells)
-      if (adjSet.has(c.r*10+c.c) && c.player !== null)
-        sc[c.player] += c.value;
-    return sc;
-  }
+// ── UI ───────────────────────────────────────────────────────
+function updateUI(){
+  const c=C[turn];
+  document.getElementById('tlbl').textContent=`Tour de ${c.n}`;
+  document.getElementById('nlbl').innerHTML=`${c.n} place son <strong>${curNum}</strong>`;
+  updatePills();
+}
 
-  function showResult(sc) {
-    const names = ['Joueur 1', 'Joueur 2'];
-    const loser = sc[0] > sc[1] ? 0 : sc[1] > sc[0] ? 1 : -1;
-    document.getElementById('ov-t').textContent = loser === -1
-      ? 'Égalité !'
-      : `${names[loser]} a perdu !`;
-    document.getElementById('ov-s').textContent = loser === -1
-      ? `Chacun totalise ${sc[0]} pt(s) autour du trou noir.`
-      : `${names[loser]} : ${sc[loser]} pt(s) — ${names[1-loser]} : ${sc[1-loser]} pt(s).`;
-    document.getElementById('ov').style.display = 'flex';
-  }
+function updatePills(){
+  [0,1].forEach(pi=>{
+    document.getElementById('sp'+pi).textContent=
+      `${C[pi].n} — ${wins[pi]} victoire${wins[pi]>1?'s':''}`;
+  });
+}
 
-  function updateScoreBar(cells, turn, curNum, sc) {
-    const names = ['Joueur 1', 'Joueur 2'];
-    if (!sc) {
-      const tots = [0, 0];
-      for (const c of cells) if (c.value !== null) tots[c.player] += c.value;
-      document.getElementById('s1').textContent = `Joueur 1 — ${tots[0]}`;
-      document.getElementById('s2').textContent = `Joueur 2 — ${tots[1]}`;
-    } else {
-      document.getElementById('s1').textContent = `Joueur 1 — ${sc[0]}`;
-      document.getElementById('s2').textContent = `Joueur 2 — ${sc[1]}`;
-    }
-    if (!gameOver) {
-      document.getElementById('tlbl').textContent = `Tour du ${names[turn]}`;
-      document.getElementById('nlbl').innerHTML   = `${names[turn]} place son <strong>${curNum}</strong>`;
-    }
-  }
-
-  function setStatus(msg) {
-    document.getElementById('status-msg').textContent = msg;
-  }
-
-  async function leaveGame() {
-    // Supprimer la partie pour pouvoir la recréer
-    if (roomId) await sb.from('games').delete().eq('id', roomId);
-    if (channel) sb.removeChannel(channel);
-    channel = null; roomId = null; myRole = null; gameOver = false;
-    document.getElementById('game').style.display   = 'none';
-    document.getElementById('lobby').style.display  = 'block';
-    document.getElementById('lobby-info').style.display = 'none';
-    document.getElementById('room-input').value = '';
-    document.getElementById('ov').style.display = 'none';
-  }
-
-  // ════════════════════════════════════════════════
-  //  RENDU SVG
-  // ════════════════════════════════════════════════
-
-  function mk(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
-
-  function mkTxt(val, fill, size) {
-    const t = mk('text');
-    t.setAttribute('text-anchor',       'middle');
-    t.setAttribute('dominant-baseline', 'central');
-    t.setAttribute('font-size',         size);
-    t.setAttribute('font-weight',       '500');
-    t.setAttribute('fill',              fill);
-    t.textContent = val;
-    return t;
-  }
-
-  function renderBoard(cells, bh, adjSet) {
-    const svg = document.getElementById('board');
-    svg.innerHTML = '';
-
-    for (const cell of cells) {
-      const { x, y } = cellPos(cell.r, cell.c);
-      const isBH  = bh && cell.r === bh.r && cell.c === bh.c;
-      const isAdj = adjSet && adjSet.has(cell.r*10+cell.c);
-
-      const g  = mk('g');
-      g.setAttribute('transform', `translate(${x},${y})`);
-
-      const ci = mk('circle');
-      ci.setAttribute('r',            R);
-      ci.setAttribute('cx',           0);
-      ci.setAttribute('cy',           0);
-      ci.setAttribute('stroke-width', isAdj ? 4 : 3);
-
-      if (isBH) {
-        ci.setAttribute('fill',   '#2c2c2a');
-        ci.setAttribute('stroke', '#2c2c2a');
-      } else if (isAdj) {
-        ci.setAttribute('fill',   cell.player === 0 ? '#b5d4f4' : '#f5c4b3');
-        ci.setAttribute('stroke', '#ef9f27');
-      } else if (cell.player === 0) {
-        ci.setAttribute('fill',   '#b5d4f4');
-        ci.setAttribute('stroke', '#185fa5');
-      } else if (cell.player === 1) {
-        ci.setAttribute('fill',   '#f5c4b3');
-        ci.setAttribute('stroke', '#993c1d');
-      } else {
-        ci.setAttribute('fill',   'transparent');
-        ci.setAttribute('stroke', '#5f5e5a');
-      }
-
-      g.appendChild(ci);
-
-      if (isBH) {
-        g.appendChild(mkTxt('★', 'white', 16));
-      } else if (cell.value !== null) {
-        g.appendChild(mkTxt(cell.value, cell.player === 0 ? '#0c447c' : '#712b13', 18));
-      }
-
-      if (!gameOver && cell.value === null) {
-        g.style.cursor = 'pointer';
-        const rr = cell.r, cc = cell.c;
-        g.addEventListener('mouseenter', () => ci.setAttribute('stroke', '#378add'));
-        g.addEventListener('mouseleave', () => ci.setAttribute('stroke', '#5f5e5a'));
-        g.addEventListener('click',      () => place(rr, cc));
-      }
-
-      svg.appendChild(g);
-    }
-  }
+buildSwatches();
 </script>
 </body>
 </html>
