@@ -12,8 +12,6 @@ body{font-family:system-ui,sans-serif;background:#f5f4ee;display:flex;justify-co
 .container{max-width:560px;width:100%}
 h1{text-align:center;font-size:22px;font-weight:500;color:#1a1a18;margin-bottom:4px}
 .subtitle{text-align:center;font-size:13px;color:#888780;margin-bottom:20px}
-
-/* ── Lobby ── */
 #lobby{display:flex;flex-direction:column;align-items:center;gap:16px}
 .lobby-card{background:#fff;border:.5px solid #d3d1c7;border-radius:12px;padding:1.25rem;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
 .lobby-card label{font-size:13px;color:#5f5e5a;font-weight:500}
@@ -27,23 +25,19 @@ h1{text-align:center;font-size:22px;font-weight:500;color:#1a1a18;margin-bottom:
 .lobby-info{background:#e6f1fb;border-radius:8px;padding:10px 14px;font-size:13px;color:#185fa5;line-height:1.6;display:none}
 .lobby-info strong{font-weight:500}
 .lobby-err{background:#fceaea;border-radius:8px;padding:8px 14px;font-size:13px;color:#993c1d;display:none}
-
-/* ── Choix couleur ── */
 #color-pick{display:none;flex-direction:column;align-items:center;gap:14px;width:100%}
 .pick-title{font-size:14px;color:#1a1a18;font-weight:500;text-align:center}
 .swatches{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .swatch{width:48px;height:48px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;position:relative}
 .swatch:hover:not(.disabled){transform:scale(1.12)}
 .swatch.selected{border-color:#1a1a18;transform:scale(1.12)}
-.swatch.disabled{opacity:.3;cursor:not-allowed;transform:none !important}
+.swatch.disabled{opacity:.3;cursor:not-allowed;transform:none!important}
 .swatch .check{display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:20px}
 .swatch.selected .check{display:flex}
 .player-preview{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:10px;border:.5px solid #d3d1c7;background:#fff;font-size:13px;color:#1a1a18;min-width:200px;justify-content:center}
 .preview-dot{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(0,0,0,.12);transition:background .2s;flex-shrink:0}
 .ready-msg{font-size:13px;color:#2e6e29;background:#e6f6ee;padding:6px 16px;border-radius:20px;display:none}
 .waiting-other{font-size:13px;color:#888780;text-align:center;display:none}
-
-/* ── Game ── */
 #game{display:none}
 .topbar{display:flex;justify-content:center;align-items:center;gap:14px;padding:10px 0 2px}
 .pill{padding:5px 16px;border-radius:20px;font-size:13px;font-weight:500}
@@ -82,8 +76,6 @@ svg#board{display:block;width:100%}
 <div class="container">
   <h1>Black Hole</h1>
   <p class="subtitle">Jeu de stratégie multijoueur — 3 rounds</p>
-
-  <!-- LOBBY -->
   <div id="lobby">
     <div class="lobby-card">
       <label>Code de la partie</label>
@@ -95,8 +87,6 @@ svg#board{display:block;width:100%}
       <div class="lobby-info" id="lobby-info"></div>
       <div class="lobby-err" id="lobby-err"></div>
     </div>
-
-    <!-- Choix couleur (affiché après connexion) -->
     <div id="color-pick">
       <div class="pick-title" id="pick-title">Choisis ta couleur</div>
       <div class="swatches" id="swatches"></div>
@@ -105,11 +95,9 @@ svg#board{display:block;width:100%}
         <span id="preview-name">Aucune couleur choisie</span>
       </div>
       <div class="ready-msg" id="ready-msg">✓ Prêt ! En attente de l'adversaire…</div>
-      <div class="waiting-other" id="waiting-other">En attente du Joueur 2…</div>
+      <div class="waiting-other" id="waiting-other"></div>
     </div>
   </div>
-
-  <!-- JEU -->
   <div id="game">
     <div class="topbar">
       <div class="pill" id="sp0">J1</div>
@@ -143,14 +131,11 @@ svg#board{display:block;width:100%}
     </div>
   </div>
 </div>
-
 <script>
-// ── Supabase ──────────────────────────────────────────────────
-const SB_URL  = 'https://cyynfiitvpuhhtcelfcz.supabase.co';
-const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eW5maWl0dnB1aGh0Y2VsZmN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDY4OTMsImV4cCI6MjA5ODIyMjg5M30.V6qwQoQt38vgDEiU4IE6ScZAbpIsp9Syna2QcBHwHIY';
-const sb = supabase.createClient(SB_URL, SB_ANON);
+const SB_URL='https://cyynfiitvpuhhtcelfcz.supabase.co';
+const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eW5maWl0dnB1aGh0Y2VsZmN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDY4OTMsImV4cCI6MjA5ODIyMjg5M30.V6qwQoQt38vgDEiU4IE6ScZAbpIsp9Syna2QcBHwHIY';
+const sb=supabase.createClient(SB_URL,SB_ANON);
 
-// ── Palette ───────────────────────────────────────────────────
 const PAL=[
   {h:'#FF8A89',n:'Rose corail',d:'#b54b4a'},
   {h:'#FFCE86',n:'Jaune soleil',d:'#8a6010'},
@@ -160,86 +145,77 @@ const PAL=[
   {h:'#C99EE3',n:'Violet lavande',d:'#5c2e9a'},
 ];
 
-// ── État global ───────────────────────────────────────────────
-let roomId=null, myRole=null, myColor=null;
-let C=[null,null], channel=null;
-let otherColor=null; // couleur choisie par l'autre joueur
-
-// ── Plateau ───────────────────────────────────────────────────
+let roomId=null,myRole=null,myColor=null,otherColor=null;
+let C=[null,null],channel=null,gameStarted=false;
 const ROWS=6,R=36,HG=80,VG=70,SX=260,SY=58;
 let cells=[],turn=0,curNum=1,gameOver=false;
 let roundIdx=0,wins=[0,0],animating=false,ssc=[0,0];
 
-// ── Helpers UI ────────────────────────────────────────────────
-function showErr(msg){ const e=document.getElementById('lobby-err'); e.textContent=msg; e.style.display='block'; }
-function hideErr(){ document.getElementById('lobby-err').style.display='none'; }
-function showInfo(html){ const e=document.getElementById('lobby-info'); e.innerHTML=html; e.style.display='block'; }
-
+// ── UI helpers ──
+function showErr(m){const e=document.getElementById('lobby-err');e.textContent=m;e.style.display='block';}
+function hideErr(){document.getElementById('lobby-err').style.display='none';}
+function showInfo(h){const e=document.getElementById('lobby-info');e.innerHTML=h;e.style.display='block';}
 function getCode(){
   const v=document.getElementById('code-input').value.trim().toUpperCase();
-  if(!v){ showErr('Entre un code de partie.'); return null; }
-  hideErr(); return v;
+  if(!v){showErr('Entre un code de partie.');return null;}
+  hideErr();return v;
 }
 
-// ── Créer une partie ──────────────────────────────────────────
+// ── Créer ──
 async function createRoom(){
-  const code=getCode(); if(!code) return;
-
-  const {data:existing}=await sb.from('games').select('id').eq('id',code).single();
-  if(existing){ showErr('Ce code existe déjà. Choisis-en un autre.'); return; }
-
-  const {error}=await sb.from('games').insert({
-    id:code, phase:'lobby',
-    p0_color:null, p1_color:null,
-    cells:null, turn:0, cur_num:1, over:false,
-    round_idx:0, wins:[0,0]
+  const code=getCode();if(!code)return;
+  const{data:ex}=await sb.from('games').select('id').eq('id',code).single();
+  if(ex){showErr('Ce code existe déjà. Choisis-en un autre.');return;}
+  const{error}=await sb.from('games').insert({
+    id:code,phase:'lobby',p0_color:null,p1_color:null,
+    cells:null,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
   });
-  if(error){ showErr('Erreur : '+error.message); return; }
-
-  roomId=code; myRole=0;
+  if(error){showErr('Erreur : '+error.message);return;}
+  roomId=code;myRole=0;
   showInfo(`<strong>Code : ${code}</strong><br>Envoie ce code à ton adversaire !`);
   showColorPicker();
   subscribe();
 }
 
-// ── Rejoindre une partie ──────────────────────────────────────
+// ── Rejoindre ──
 async function joinRoom(){
-  const code=getCode(); if(!code) return;
-
-  const {data,error}=await sb.from('games').select('*').eq('id',code).single();
-  if(error||!data){ showErr('Partie introuvable. Vérifie le code.'); return; }
-  if(data.p1_color!==null && data.phase!=='lobby'){ showErr('La partie est déjà complète.'); return; }
-
-  roomId=code; myRole=1;
-
-  // Si J0 a déjà choisi une couleur, on la note
-  if(data.p0_color!==null) otherColor=data.p0_color;
-
-  showInfo(`<strong>Code : ${code}</strong><br>Tu rejoins la partie en tant que Joueur 2 !`);
+  const code=getCode();if(!code)return;
+  const{data,error}=await sb.from('games').select('*').eq('id',code).single();
+  if(error||!data){showErr('Partie introuvable. Vérifie le code.');return;}
+  if(data.p1_color!==null&&data.phase!=='lobby'){showErr('La partie est déjà complète.');return;}
+  roomId=code;myRole=1;
+  if(data.p0_color!==null)otherColor=data.p0_color;
+  showInfo(`<strong>Code : ${code}</strong><br>Tu rejoins en tant que Joueur 2 !`);
   showColorPicker();
   subscribe();
+  // ── CORRECTION CLÉ : si J0 a déjà choisi ET que la partie est déjà en playing,
+  //    on entre directement dans le jeu sans attendre un nouvel événement
+  if(data.phase==='playing'){
+    C=[PAL[data.p0_color],PAL[data.p1_color]];
+    enterGame();
+    applyGameState(data);
+  }
 }
 
-// ── Sélecteur de couleur ──────────────────────────────────────
+// ── Sélecteur couleur ──
 function showColorPicker(){
   document.getElementById('color-pick').style.display='flex';
   document.getElementById('pick-title').textContent=
-    myRole===0 ? 'Joueur 1 — choisis ta couleur' : 'Joueur 2 — choisis ta couleur';
-
+    myRole===0?'Joueur 1 — choisis ta couleur':'Joueur 2 — choisis ta couleur';
   if(myRole===0){
     document.getElementById('waiting-other').style.display='block';
+    document.getElementById('waiting-other').textContent='En attente du Joueur 2…';
   }
-
   buildSwatches();
 }
 
 function buildSwatches(){
-  const c=document.getElementById('swatches'); c.innerHTML='';
+  const c=document.getElementById('swatches');c.innerHTML='';
   PAL.forEach((col,ci)=>{
     const d=document.createElement('div');
-    d.className='swatch'; d.style.background=col.h;
+    d.className='swatch';d.style.background=col.h;
     d.innerHTML='<span class="check">✓</span>';
-    d.id='sw'+ci; d.onclick=()=>pickColor(ci);
+    d.id='sw'+ci;d.onclick=()=>pickColor(ci);
     c.appendChild(d);
   });
   refreshSwatches();
@@ -247,29 +223,43 @@ function buildSwatches(){
 
 function refreshSwatches(){
   PAL.forEach((_,ci)=>{
-    const el=document.getElementById('sw'+ci);
-    if(!el) return;
+    const el=document.getElementById('sw'+ci);if(!el)return;
     el.className='swatch';
-    if(ci===myColor) el.classList.add('selected');
-    if(ci===otherColor) el.classList.add('disabled');
+    if(ci===myColor)el.classList.add('selected');
+    if(ci===otherColor)el.classList.add('disabled');
   });
 }
 
 async function pickColor(ci){
-  if(ci===otherColor) return; // couleur prise par l'autre
+  if(ci===otherColor)return;
   myColor=ci;
-
   document.getElementById('preview-dot').style.background=PAL[ci].h;
   document.getElementById('preview-name').textContent=PAL[ci].n;
   refreshSwatches();
-
   const field=myRole===0?'p0_color':'p1_color';
   await sb.from('games').update({[field]:ci}).eq('id',roomId);
-
   document.getElementById('ready-msg').style.display='block';
+
+  // ── CORRECTION CLÉ : après avoir choisi, J2 vérifie immédiatement
+  //    si J0 avait déjà choisi → lance le jeu sans attendre Realtime
+  if(myRole===1){
+    const{data}=await sb.from('games').select('*').eq('id',roomId).single();
+    if(data&&data.p0_color!==null){
+      // J0 avait déjà choisi → J1 lance le jeu directement
+      C=[PAL[data.p0_color],PAL[ci]];
+      // Met à jour la DB pour que J0 bascule aussi
+      const ic=[];
+      for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)ic.push({r,c,value:null,player:null});
+      await sb.from('games').update({
+        phase:'playing',cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
+      }).eq('id',roomId);
+      enterGame();
+      applyGameState({...data,phase:'playing',cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]});
+    }
+  }
 }
 
-// ── Realtime ──────────────────────────────────────────────────
+// ── Realtime ──
 function subscribe(){
   channel=sb.channel('room-'+roomId)
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'games',filter:`id=eq.${roomId}`},
@@ -278,43 +268,50 @@ function subscribe(){
 }
 
 function onRow(row){
-  // Mise à jour couleur de l'autre joueur → grise le swatch
+  // Mise à jour couleur de l'autre joueur
   const oc=myRole===0?row.p1_color:row.p0_color;
-  if(oc!==null && oc!==otherColor){
+  if(oc!==null&&oc!==otherColor){
     otherColor=oc;
-    // Si on avait choisi la même couleur, on la libère
-    if(myColor===oc){ myColor=null; document.getElementById('preview-dot').style.background='transparent'; document.getElementById('preview-name').textContent='Aucune couleur choisie'; document.getElementById('ready-msg').style.display='none'; }
+    if(myColor===oc){
+      myColor=null;
+      document.getElementById('preview-dot').style.background='transparent';
+      document.getElementById('preview-name').textContent='Aucune couleur choisie';
+      document.getElementById('ready-msg').style.display='none';
+    }
     refreshSwatches();
   }
 
-  // Les deux ont choisi → démarre
-  if(row.p0_color!==null && row.p1_color!==null && row.phase==='lobby'){
-    if(myRole===0) launchGame(row); // J0 initialise le plateau
-    else waitForPlaying(row);
+  // Passage en phase playing → J0 entre dans le jeu
+  if(row.phase==='playing'&&!gameStarted){
+    if(!C[0]&&row.p0_color!==null&&row.p1_color!==null){
+      C=[PAL[row.p0_color],PAL[row.p1_color]];
+    }
+    if(C[0]){
+      enterGame();
+      applyGameState(row);
+    }
+    return;
   }
 
-  if(row.phase==='playing') applyGameState(row);
+  if(row.phase==='playing'&&gameStarted){
+    applyGameState(row);
+  }
+
+  // J0 voit que les deux ont choisi → il lance le jeu
+  if(row.phase==='lobby'&&row.p0_color!==null&&row.p1_color!==null&&myRole===0&&!gameStarted){
+    C=[PAL[row.p0_color],PAL[row.p1_color]];
+    const ic=[];
+    for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)ic.push({r,c,value:null,player:null});
+    sb.from('games').update({
+      phase:'playing',cells:ic,turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
+    }).eq('id',roomId).then(()=>{});
+  }
 }
 
-// ── Lancement ─────────────────────────────────────────────────
-async function launchGame(row){
-  C=[PAL[row.p0_color],PAL[row.p1_color]];
-  const initCells=[];
-  for(let r=0;r<ROWS;r++) for(let c=0;c<=r;c++) initCells.push({r,c,value:null,player:null});
-  await sb.from('games').update({
-    phase:'playing',cells:initCells,
-    turn:0,cur_num:1,over:false,round_idx:0,wins:[0,0]
-  }).eq('id',roomId);
-  showGame(row.p0_color,row.p1_color);
-}
-
-async function waitForPlaying(row){
-  // J1 attend que J0 ait écrit l'état playing (déjà géré par onRow)
-  C=[PAL[row.p0_color],PAL[row.p1_color]];
-}
-
-function showGame(c0,c1){
-  C=[PAL[c0],PAL[c1]];
+// ── Entrée dans le jeu ──
+function enterGame(){
+  if(gameStarted)return;
+  gameStarted=true;
   document.getElementById('lobby').style.display='none';
   document.getElementById('game').style.display='block';
   applyColors();
@@ -323,52 +320,52 @@ function showGame(c0,c1){
 function applyColors(){
   [0,1].forEach(pi=>{
     const c=C[pi];
-    document.getElementById('sp'+pi).style.cssText+=`;background:${c.h};color:${c.d}`;
-    document.getElementById('bx'+pi).style.cssText+=`;border-color:${c.h};color:${c.d}`;
+    const p=document.getElementById('sp'+pi);p.style.background=c.h;p.style.color=c.d;
+    const b=document.getElementById('bx'+pi);b.style.borderColor=c.h;b.style.color=c.d;
   });
-  document.getElementById('sbl').style.cssText+=`;border-color:${C[0].h};color:${C[0].d}`;
-  document.getElementById('sbr').style.cssText+=`;border-color:${C[1].h};color:${C[1].d}`;
+  document.getElementById('sbl').style.borderColor=C[0].h;document.getElementById('sbl').style.color=C[0].d;
+  document.getElementById('sbr').style.borderColor=C[1].h;document.getElementById('sbr').style.color=C[1].d;
 }
 
-// ── État jeu ──────────────────────────────────────────────────
+// ── État jeu ──
 function applyGameState(row){
-  if(!C[0]){ C=[PAL[row.p0_color],PAL[row.p1_color]]; showGame(row.p0_color,row.p1_color); }
-  cells=row.cells; turn=row.turn; curNum=row.cur_num;
-  gameOver=row.over; roundIdx=row.round_idx;
+  cells=row.cells||[];
+  turn=row.turn;curNum=row.cur_num;gameOver=row.over;
+  roundIdx=row.round_idx;
   wins=Array.isArray(row.wins)?row.wins:JSON.parse(row.wins);
-
   if(row.over){
     const bh=cells.find(x=>x.value===null);
+    if(!bh)return;
     const adjS=new Set(adjOf(bh.r,bh.c).map(a=>a.r*10+a.c));
     const sc=[0,0];
-    for(const c of cells) if(adjS.has(c.r*10+c.c)&&c.player!==null) sc[c.player]+=c.value;
+    for(const c of cells)if(adjS.has(c.r*10+c.c)&&c.player!==null)sc[c.player]+=c.value;
     render(bh,null);
-    if(!animating) runAnim(bh,adjS,sc);
-  } else { render(); updateUI(); }
+    if(!animating)runAnim(bh,adjS,sc);
+  } else{render();updateUI();}
 }
 
-// ── Placement ─────────────────────────────────────────────────
+// ── Placement ──
 async function place(r,c){
-  if(gameOver||animating||turn!==myRole) return;
-  const {data:row}=await sb.from('games').select('*').eq('id',roomId).single();
-  if(!row||row.turn!==myRole) return;
+  if(gameOver||animating||turn!==myRole)return;
+  const{data:row}=await sb.from('games').select('*').eq('id',roomId).single();
+  if(!row||row.turn!==myRole)return;
   const cell=row.cells.find(x=>x.r===r&&x.c===c);
-  if(!cell||cell.value!==null) return;
-  cell.value=row.cur_num; cell.player=row.turn;
-  let nt=1-row.turn, nc=row.cur_num;
-  if(row.turn===1) nc++;
+  if(!cell||cell.value!==null)return;
+  cell.value=row.cur_num;cell.player=row.turn;
+  let nt=1-row.turn,nc=row.cur_num;
+  if(row.turn===1)nc++;
   await sb.from('games').update({cells:row.cells,turn:nt,cur_num:nc,over:nc>10&&nt===0}).eq('id',roomId);
 }
 
-// ── Animation traits ──────────────────────────────────────────
+// ── Animation traits ──
 function runAnim(bh,adjS,sc){
-  animating=true; ssc=[0,0];
+  animating=true;ssc=[0,0];
   document.getElementById('score-left').classList.add('show');
   document.getElementById('score-right').classList.add('show');
   document.getElementById('sbl').textContent='0';
   document.getElementById('sbr').textContent='0';
   const svg=document.getElementById('board');
-  const bp=cpos(bh.r,bh.c), adjC=adjOf(bh.r,bh.c); let i=0;
+  const bp=cpos(bh.r,bh.c),adjC=adjOf(bh.r,bh.c);let i=0;
   function next(){
     if(i>=adjC.length){animating=false;setTimeout(()=>showResult(sc,bh,adjS),500);return;}
     const nb=adjC[i++],np=cpos(nb.r,nb.c);
@@ -400,13 +397,13 @@ function bump(pi){
   setTimeout(()=>el.classList.remove('bump'),200);
 }
 
-// ── Résultat ──────────────────────────────────────────────────
+// ── Résultat ──
 function showResult(sc,bh,adjS){
   render(bh,adjS);
   document.getElementById('score-left').classList.remove('show');
   document.getElementById('score-right').classList.remove('show');
   const loser=sc[0]>sc[1]?0:sc[1]>sc[0]?1:-1;
-  if(loser===-1) document.getElementById('rmsg').textContent='Égalité ce round !';
+  if(loser===-1)document.getElementById('rmsg').textContent='Égalité ce round !';
   else{const w=1-loser;document.getElementById('rmsg').textContent=`Victoire de ${C[w].n} !`;wins[w]++;}
   document.getElementById('bv0').textContent=sc[0];
   document.getElementById('bv1').textContent=sc[1];
@@ -416,15 +413,15 @@ function showResult(sc,bh,adjS){
   if(loser!==-1){const w=1-loser,dot=document.getElementById('rd'+roundIdx);dot.style.background=C[w].h;dot.style.borderColor=C[w].h;}
   document.getElementById('btn-next').textContent=roundIdx===2?'Voir le résultat final':'Round suivant';
   document.getElementById('ov').classList.add('show');
-  updatePills(); confetti(loser===-1?null:1-loser);
+  updatePills();confetti(loser===-1?null:1-loser);
 }
 
 async function nextRound(){
   if(roundIdx>=2){showFinal();return;}
-  if(myRole!==0) return; // seul J0 écrit
+  if(myRole!==0)return;
   const nr=roundIdx+1;
   const ic=[];
-  for(let r=0;r<ROWS;r++) for(let c=0;c<=r;c++) ic.push({r,c,value:null,player:null});
+  for(let r=0;r<ROWS;r++)for(let c=0;c<=r;c++)ic.push({r,c,value:null,player:null});
   await sb.from('games').update({cells:ic,turn:0,cur_num:1,over:false,round_idx:nr,wins}).eq('id',roomId);
   document.getElementById('ov').classList.remove('show');
   document.getElementById('confetti-canvas').style.display='none';
@@ -441,11 +438,11 @@ function showFinal(){
 }
 
 async function resetGame(){
-  if(myRole===0) await sb.from('games').delete().eq('id',roomId);
+  if(myRole===0)await sb.from('games').delete().eq('id',roomId);
   location.reload();
 }
 
-// ── Rendu SVG ─────────────────────────────────────────────────
+// ── SVG ──
 const mkS=t=>document.createElementNS('http://www.w3.org/2000/svg',t);
 const cpos=(r,c)=>({x:SX+(c-r/2)*HG,y:SY+r*VG});
 function adjOf(r,c){
@@ -463,7 +460,7 @@ function mkT(v,fill,size){
 function render(bh=null,adjS=null){
   const svg=document.getElementById('board');
   svg.querySelectorAll('g.cell').forEach(e=>e.remove());
-  if(!cells||!cells.length) return;
+  if(!cells||!cells.length)return;
   for(const cell of cells){
     const{x,y}=cpos(cell.r,cell.c);
     const isBH=bh&&cell.r===bh.r&&cell.c===bh.c;
@@ -476,7 +473,7 @@ function render(bh=null,adjS=null){
       const col=C[cell.player];
       ci.setAttribute('fill',col.h);ci.setAttribute('stroke',isAdj?'#2C2C2A':col.d);
       ci.setAttribute('stroke-width',isAdj?'3.5':'3');
-    } else{ci.setAttribute('fill','transparent');ci.setAttribute('stroke','#b4b2a9');}
+    }else{ci.setAttribute('fill','transparent');ci.setAttribute('stroke','#b4b2a9');}
     g.appendChild(ci);
     if(isBH)g.appendChild(mkT('★','white',18));
     else if(cell.value!==null)g.appendChild(mkT(cell.value,C[cell.player].d,26));
@@ -491,7 +488,7 @@ function render(bh=null,adjS=null){
   }
 }
 
-// ── UI ────────────────────────────────────────────────────────
+// ── UI ──
 function updateUI(){
   const c=C[turn];
   document.getElementById('tlbl').textContent=`Tour de ${c.n}`;
@@ -505,7 +502,7 @@ function updatePills(){
   [0,1].forEach(pi=>{if(C[pi])document.getElementById('sp'+pi).textContent=`${C[pi].n} — ${wins[pi]} victoire${wins[pi]>1?'s':''}`;});
 }
 
-// ── Confettis ─────────────────────────────────────────────────
+// ── Confettis ──
 function confetti(wi){
   const cv=document.getElementById('confetti-canvas');
   const wrap=document.querySelector('.board-wrap');
